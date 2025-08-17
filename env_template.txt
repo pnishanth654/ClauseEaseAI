@@ -1,0 +1,27 @@
+# Copy this file to .env and fill in your actual values
+
+# Database Configuration
+DATABASE_URL=postgresql://your-username:your-password@your-host:5432/your-database
+
+# Flask Configuration
+FLASK_SECRET_KEY=your-secret-key-here
+FLASK_ENV=development
+
+# Email Configuration (Gmail)
+MAIL_SERVER=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USE_TLS=true
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+MAIL_DEFAULT_SENDER=your-email@gmail.com
+
+# Firebase Configuration (Already configured in code!)
+# These are automatically set from your Firebase config
+# FIREBASE_API_KEY=AIzaSyALD8HsY7m6RQ4zHUteJrOM0kyXQNKz4CU
+# FIREBASE_AUTH_DOMAIN=clauseeaseai.firebaseapp.com
+# FIREBASE_PROJECT_ID=clauseeaseai
+# FIREBASE_STORAGE_BUCKET=clauseeaseai.firebasestorage.app
+# FIREBASE_MESSAGING_SENDER_ID=1012798224616
+# FIREBASE_APP_ID=1:1012798224616:web:b8f0cc9bc86428aecd715d
+# FIREBASE_MEASUREMENT_ID=G-TEN7RPHQ9M
+# FIREBASE_SERVICE_ACCOUNT_KEY=firebase-service-account.json 

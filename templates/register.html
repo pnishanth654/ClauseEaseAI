@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Register - ClauseEase AI{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="text-center mb-4">
+                <div class="logo-container mb-3">
+                    <div class="logo-circle">
+                        <img src="{{ url_for('static', filename='icon.png') }}" alt="ClauseEase AI">
+                    </div>
+                </div>
+                <h1>Create Account</h1>
+                <p>Join ClauseEase AI to get started</p>
+            </div>
+        </div>
+
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+            
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.first_name.label(class="form-label") }}
+                        {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else ""), placeholder="Enter your first name") }}
+                        {% if form.first_name.errors %}
+                            {% for error in form.first_name.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.last_name.label(class="form-label") }}
+                        {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else ""), placeholder="Enter your last name") }}
+                        {% if form.last_name.errors %}
+                            {% for error in form.last_name.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Enter your email") }}
+                {% if form.email.errors %}
+                    {% for error in form.email.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+                <div class="form-text">Email is optional if you provide a phone number</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Phone Number</label>
+                <div class="row">
+                    <div class="col-5">
+                        <div class="country-select-wrapper">
+                            {{ form.country_code(class="form-select country-select" + (" is-invalid" if form.country_code.errors else ""), id="country-select") }}
+                            {% if form.country_code.errors %}
+                                {% for error in form.country_code.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-7">
+                        {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else ""), placeholder="1234567890") }}
+                        {% if form.phone.errors %}
+                            {% for error in form.phone.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="form-text">Phone is optional if you provide an email. Enter exactly 10 digits.</div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.gender.label(class="form-label") }}
+                        {{ form.gender(class="form-select" + (" is-invalid" if form.gender.errors else "")) }}
+                        {% if form.gender.errors %}
+                            {% for error in form.gender.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.date_of_birth.label(class="form-label") }}
+                        {{ form.date_of_birth(class="form-control" + (" is-invalid" if form.date_of_birth.errors else "")) }}
+                        {% if form.date_of_birth.errors %}
+                            {% for error in form.date_of_birth.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                {{ form.password.label(class="form-label") }}
+                {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Enter your password", id="password-input") }}
+                {% if form.password.errors %}
+                    {% for error in form.password.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+                
+                <!-- Password Policy -->
+                <div class="password-policy mt-2">
+                    <small class="text-muted">Password must contain:</small>
+                    <div class="policy-item" id="length-check">
+                        <span class="policy-dot"></span>
+                        <span>8+ characters</span>
+                    </div>
+                    <div class="policy-item" id="uppercase-check">
+                        <span class="policy-dot"></span>
+                        <span>Uppercase (A-Z)</span>
+                    </div>
+                    <div class="policy-item" id="lowercase-check">
+                        <span class="policy-dot"></span>
+                        <span>Lowercase (a-z)</span>
+                    </div>
+                    <div class="policy-item" id="number-check">
+                        <span class="policy-dot"></span>
+                        <span>Number (0-9)</span>
+                    </div>
+                    <div class="policy-item" id="special-check">
+                        <span class="policy-dot"></span>
+                        <span>Special (!@#$%^&*)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+
+        <div class="auth-links">
+            <p>Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- Password Policy JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.getElementById('password-input');
+    const policyChecks = {
+        length: document.getElementById('length-check'),
+        uppercase: document.getElementById('uppercase-check'),
+        lowercase: document.getElementById('lowercase-check'),
+        number: document.getElementById('number-check'),
+        special: document.getElementById('special-check')
+    };
+
+    function updatePasswordPolicy(password) {
+        // Length check
+        if (password.length >= 8) {
+            policyChecks.length.classList.add('valid');
+            policyChecks.length.classList.remove('invalid');
+        } else {
+            policyChecks.length.classList.remove('valid');
+            policyChecks.length.classList.add('invalid');
+        }
+
+        // Uppercase check
+        if (/[A-Z]/.test(password)) {
+            policyChecks.uppercase.classList.add('valid');
+            policyChecks.uppercase.classList.remove('invalid');
+        } else {
+            policyChecks.uppercase.classList.remove('valid');
+            policyChecks.uppercase.classList.add('invalid');
+        }
+
+        // Lowercase check
+        if (/[a-z]/.test(password)) {
+            policyChecks.lowercase.classList.add('valid');
+            policyChecks.lowercase.classList.remove('invalid');
+        } else {
+            policyChecks.lowercase.classList.remove('valid');
+            policyChecks.lowercase.classList.add('invalid');
+        }
+
+        // Number check
+        if (/\d/.test(password)) {
+            policyChecks.number.classList.add('valid');
+            policyChecks.number.classList.remove('invalid');
+        } else {
+            policyChecks.number.classList.remove('valid');
+            policyChecks.number.classList.add('invalid');
+        }
+
+        // Special character check
+        if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+            policyChecks.special.classList.add('valid');
+            policyChecks.special.classList.remove('invalid');
+        } else {
+            policyChecks.special.classList.remove('valid');
+            policyChecks.special.classList.add('invalid');
+        }
+    }
+
+    passwordInput.addEventListener('input', function() {
+        updatePasswordPolicy(this.value);
+    });
+
+    // Initialize policy display
+    updatePasswordPolicy('');
+});
+</script>
+{% endblock %} 

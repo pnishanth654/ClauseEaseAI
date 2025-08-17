@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Account - ClauseEase AI{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="text-center mb-4">
+                <div class="logo-container mb-3">
+                    <div class="logo-circle">
+                        <img src="{{ url_for('static', filename='icon.png') }}" alt="ClauseEase AI">
+                    </div>
+                </div>
+                <h1>Verify Your Account</h1>
+                <p>Please verify your email and phone to activate your account</p>
+            </div>
+        </div>
+
+                <!-- Single OTP Verification Info -->
+        <div class="verification-info mb-4">
+            <div class="alert alert-info border-0">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                    <div>
+                        <h6 class="mb-1">🔐 Single OTP Verification</h6>
+                        <p class="mb-0 small">
+                            You'll receive a 6-digit OTP via <strong>email</strong> or <strong>phone</strong> (based on what you provided during registration).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Single OTP Verification Section -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                {% if user.email and not user.email_verified %}
+                    <!-- Email Verification -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="text-center mb-4">
+                                <div class="verification-icon mb-3">
+                                    <i class="bi bi-envelope text-primary fs-1"></i>
+                                </div>
+                                <h4 class="card-title">Email Verification</h4>
+                                <p class="text-muted">
+                                    We've sent a 6-digit verification code to:<br>
+                                    <strong class="text-break">{{ user.email }}</strong>
+                                </p>
+                            </div>
+                            
+                            <form method="POST">
+                                {{ email_form.hidden_tag() }}
+                                <div class="mb-3">
+                                    <label class="form-label">Enter 6-digit code</label>
+                                    {{ email_form.email_otp(class="form-control form-control-lg text-center" + (" is-invalid" if email_form.email_otp.errors else ""), placeholder="000000", maxlength="6") }}
+                                    {% if email_form.email_otp.errors %}
+                                        {% for error in email_form.email_otp.errors %}
+                                            <div class="invalid-feedback">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                <div class="d-grid gap-2">
+                                    {{ email_form.submit(class="btn btn-primary btn-lg") }}
+                                    <button type="button" class="btn btn-outline-secondary" id="resend-email-btn">
+                                        <i class="bi bi-arrow-clockwise"></i> Resend Code
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                {% elif user.phone and not user.phone_verified %}
+                    <!-- Phone Verification -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="text-center mb-4">
+                                <div class="verification-icon mb-3">
+                                    <i class="bi bi-phone text-success fs-1"></i>
+                                </div>
+                                <h4 class="card-title">Phone Verification</h4>
+                                <p class="text-muted">
+                                    We'll send a 6-digit verification code to:<br>
+                                    <strong>{{ user.phone }}</strong>
+                                </p>
+                            </div>
+                            
+                            <!-- Firebase Phone Auth UI -->
+                            <div id="firebase-phone-auth">
+                                <div class="mb-3" id="recaptcha-container"></div>
+                                <div class="mb-3" id="otp-container" style="display: none;">
+                                    <label class="form-label">Enter 6-digit code from SMS</label>
+                                    <input type="text" id="otp-input" class="form-control form-control-lg text-center" placeholder="000000" maxlength="6">
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button type="button" id="send-otp-btn" class="btn btn-success btn-lg">
+                                        <i class="bi bi-send"></i> Send SMS Code
+                                    </button>
+                                    <button type="button" id="verify-otp-btn" class="btn btn-primary btn-lg" style="display: none;">
+                                        <i class="bi bi-check-circle"></i> Verify Code
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="resend-phone-btn" style="display: none;">
+                                        <i class="bi bi-arrow-clockwise"></i> Resend Code
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <script>
+                                // Set current user ID for Firebase auth
+                                window.currentUserId = {{ user.id }};
+                            </script>
+                            
+                            <!-- Fallback OTP Form -->
+                            <div id="fallback-otp-form" style="display: none;">
+                                <form method="POST">
+                                    {{ phone_form.hidden_tag() }}
+                                    <div class="mb-3">
+                                        <label class="form-label">Enter 6-digit code from SMS</label>
+                                        {{ phone_form.phone_otp(class="form-control form-control-lg text-center" + (" is-invalid" if phone_form.phone_otp.errors else ""), placeholder="000000", maxlength="6") }}
+                                        {% if phone_form.phone_otp.errors %}
+                                            {% for error in phone_form.phone_otp.errors %}
+                                                <div class="invalid-feedback">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-grid">
+                                        {{ phone_form.submit(class="btn btn-success btn-lg") }}
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                {% else %}
+                    <!-- No verification needed or no contact method -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4 text-center">
+                            {% if user.email_verified and user.phone_verified %}
+                                <div class="verification-icon mb-3">
+                                    <i class="bi bi-check-circle text-success fs-1"></i>
+                                </div>
+                                <h4 class="card-title text-success">Verification Complete!</h4>
+                                <p class="text-muted">
+                                    Your account has been verified successfully.
+                                </p>
+                                <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-box-arrow-in-right"></i> Proceed to Login
+                                </a>
+                            {% else %}
+                                <div class="verification-icon mb-3">
+                                    <i class="bi bi-exclamation-triangle text-warning fs-1"></i>
+                                </div>
+                                <h4 class="card-title">No Contact Method</h4>
+                                <p class="text-muted">
+                                    You haven't provided an email or phone number for verification.
+                                </p>
+                                <a href="{{ url_for('register') }}" class="btn btn-primary">
+                                    <i class="bi bi-arrow-left"></i> Go Back to Registration
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <form method="POST" class="d-inline">
+                {{ resend_form.hidden_tag() }}
+                {{ resend_form.submit(class="btn btn-outline-secondary") }}
+            </form>
+            <span class="text-muted ms-2">Didn't receive the code?</span>
+        </div>
+
+        <div class="auth-links mt-3">
+            <p>Already verified? <a href="{{ url_for('login') }}">Log in</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %} 
