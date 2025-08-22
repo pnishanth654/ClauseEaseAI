@@ -3,6 +3,10 @@
 Simple script to view all users in the ClauseEase AI database
 """
 
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+
 from app import create_app
 from models import User
 from extensions import db

@@ -86,33 +86,8 @@
                                 </p>
                             </div>
                             
-                            <!-- Firebase Phone Auth UI -->
-                            <div id="firebase-phone-auth">
-                                <div class="mb-3" id="recaptcha-container"></div>
-                                <div class="mb-3" id="otp-container" style="display: none;">
-                                    <label class="form-label">Enter 6-digit code from SMS</label>
-                                    <input type="text" id="otp-input" class="form-control form-control-lg text-center" placeholder="000000" maxlength="6">
-                                </div>
-                                <div class="d-grid gap-2">
-                                    <button type="button" id="send-otp-btn" class="btn btn-success btn-lg">
-                                        <i class="bi bi-send"></i> Send SMS Code
-                                    </button>
-                                    <button type="button" id="verify-otp-btn" class="btn btn-primary btn-lg" style="display: none;">
-                                        <i class="bi bi-check-circle"></i> Verify Code
-                                    </button>
-                                    <button type="button" class="btn btn-outline-secondary" id="resend-phone-btn" style="display: none;">
-                                        <i class="bi bi-arrow-clockwise"></i> Resend Code
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <script>
-                                // Set current user ID for Firebase auth
-                                window.currentUserId = {{ user.id }};
-                            </script>
-                            
-                            <!-- Fallback OTP Form -->
-                            <div id="fallback-otp-form" style="display: none;">
+                            <!-- Simple OTP Form for Phone Verification -->
+                            <div id="phone-otp-form">
                                 <form method="POST">
                                     {{ phone_form.hidden_tag() }}
                                     <div class="mb-3">
@@ -129,6 +104,8 @@
                                     </div>
                                 </form>
                             </div>
+                            
+
                         </div>
                     </div>
                     

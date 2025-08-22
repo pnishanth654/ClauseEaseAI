@@ -9,12 +9,14 @@ A modern, secure Flask authentication system with email/phone registration, pass
 - Login with email or phone + password
 - Secure logout functionality
 - Password reset via email
+- **OTP verification for email and phone**
 - Unique email and phone validation
 
 ✅ **Security Features**
 - Bcrypt password hashing
 - CSRF protection on all forms
 - Rate limiting (5 attempts per minute for login/register, 3 for password reset)
+- **OTP verification with configurable expiry**
 - Secure session management
 - Input validation and sanitization
 

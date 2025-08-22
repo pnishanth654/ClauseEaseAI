@@ -9,25 +9,29 @@ from extensions import db, login_manager, mail, limiter
 from models import User
 from forms import RegisterForm, LoginForm, ForgotPasswordForm, ResetPasswordForm, EmailOTPForm, PhoneOTPForm, ResendOTPForm
 from email_utils import generate_reset_token, verify_reset_token, send_password_reset
-from otp_utils import generate_otp, get_otp_expiry_time, send_email_otp, send_sms_otp, is_otp_expired, verify_firebase_phone_token, create_firebase_custom_token
+from otp_utils import generate_otp, get_otp_expiry_time, send_email_otp, send_sms_otp, is_otp_expired
 import phonenumbers
 
 load_dotenv()
 
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, 
+                template_folder='../templates',
+                static_folder='../static')
 
     # Core config
     app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "dev-secret-key-change-in-production")
     
-    # Use SQLite for local development if DATABASE_URL is not available
-    database_url = os.getenv("DATABASE_URL")
-    if database_url:
-        app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-    else:
-        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///clauseease.db"
-        print("📁 Using SQLite database for local development")
+    # Force SQLite for testing (comment out to use PostgreSQL)
+    # database_url = os.getenv("DATABASE_URL")
+    # if database_url:
+    #     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    # else:
+    # Database will be created in the root directory
+    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'clauseease.db')
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+    print(f"📁 Using SQLite database: {db_path}")
     
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -39,14 +43,7 @@ def create_app():
     app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD", "your-app-password")
     app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER", "your-email@gmail.com")
 
-    # Firebase config
-    app.config["FIREBASE_SERVICE_ACCOUNT_KEY"] = os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY")
-    app.config["FIREBASE_API_KEY"] = os.getenv("FIREBASE_API_KEY")
-    app.config["FIREBASE_AUTH_DOMAIN"] = os.getenv("FIREBASE_AUTH_DOMAIN")
-    app.config["FIREBASE_PROJECT_ID"] = os.getenv("FIREBASE_PROJECT_ID")
-    app.config["FIREBASE_STORAGE_BUCKET"] = os.getenv("FIREBASE_STORAGE_BUCKET")
-    app.config["FIREBASE_MESSAGING_SENDER_ID"] = os.getenv("FIREBASE_MESSAGING_SENDER_ID")
-    app.config["FIREBASE_APP_ID"] = os.getenv("FIREBASE_APP_ID")
+    # OTP configuration - using custom email and SMS verification
 
     # Init extensions
     db.init_app(app)
@@ -104,10 +101,19 @@ def create_app():
                     email_otp = generate_otp()
                     user.email_otp = email_otp
                     user.email_otp_expires = get_otp_expiry_time()
-                    send_email_otp(user.email, email_otp)
-                    flash(f"Verification code sent to {user.email}", "success")
+                    
+                    # Send email OTP
+                    email_sent = send_email_otp(user.email, email_otp)
+                    
+                    if email_sent:
+                        flash(f"Verification code sent to {user.email}", "success")
+                    else:
+                        # If email fails, show OTP in console for testing
+                        print(f"🔐 EMAIL OTP FOR TESTING: {email_otp}")
+                        print(f"📧 Email: {user.email}")
+                        flash(f"Email delivery failed. Check console for OTP code.", "warning")
                 elif user.phone:
-                    # Send OTP via phone (Firebase)
+                    # Send OTP via phone (SMS)
                     phone_otp = generate_otp()
                     user.phone_otp = phone_otp
                     user.phone_otp_expires = get_otp_expiry_time()
@@ -289,69 +295,7 @@ def create_app():
                              phone_form=phone_form, 
                              resend_form=resend_form)
 
-    @app.route("/firebase/verify-phone", methods=["POST"])
-    def firebase_verify_phone():
-        """Verify Firebase phone authentication token"""
-        try:
-            data = request.get_json()
-            id_token = data.get('idToken')
-            user_id = data.get('userId')
-            
-            if not id_token or not user_id:
-                return {"error": "Missing required data"}, 400
-            
-            # Verify Firebase token
-            decoded_token = verify_firebase_phone_token(id_token)
-            if not decoded_token:
-                return {"error": "Invalid token"}, 400
-            
-            # Verify that the phone number in the token matches the user's phone
-            user = User.query.get(user_id)
-            if not user:
-                return {"error": "User not found"}, 404
-            
-            # Check if phone number matches (Firebase token contains the verified phone)
-            token_phone = decoded_token.get('phone_number')
-            if token_phone and user.phone:
-                # Normalize phone numbers for comparison
-                import phonenumbers
-                try:
-                    user_parsed = phonenumbers.parse(user.phone, None)
-                    token_parsed = phonenumbers.parse(token_phone, None)
-                    
-                    if phonenumbers.format_number(user_parsed, phonenumbers.PhoneNumberFormat.E164) != \
-                       phonenumbers.format_number(token_parsed, phonenumbers.PhoneNumberFormat.E164):
-                        return {"error": "Phone number mismatch"}, 400
-                except:
-                    # If parsing fails, do simple string comparison
-                    if user.phone != token_phone:
-                        return {"error": "Phone number mismatch"}, 400
-            
-            # Mark phone as verified
-            user.phone_verified = True
-            user.phone_otp = None
-            user.phone_otp_expires = None
-            db.session.commit()
-            
-            return {"success": True, "message": "Phone verified successfully"}
-            
-        except Exception as e:
-            current_app.logger.error(f"Firebase phone verification error: {e}")
-            return {"error": "Verification failed"}, 500
-
-    @app.route("/firebase/custom-token/<int:user_id>")
-    def get_firebase_custom_token(user_id):
-        """Get Firebase custom token for user"""
-        try:
-            user = User.query.get_or_404(user_id)
-            custom_token = create_firebase_custom_token(user.id)
-            if custom_token:
-                return {"customToken": custom_token}
-            else:
-                return {"error": "Failed to create token"}, 500
-        except Exception as e:
-            current_app.logger.error(f"Firebase custom token error: {e}")
-            return {"error": "Token creation failed"}, 500
+    # OTP verification routes - using custom email and SMS verification
 
     @app.route("/dashboard")
     @login_required
