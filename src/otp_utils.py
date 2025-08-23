@@ -26,6 +26,20 @@ def get_otp_expiry_time(minutes=None):
 def send_email_otp(email, otp):
     """Send OTP via email"""
     try:
+        # Check if mail is properly configured
+        if not current_app.config.get("MAIL_USERNAME") or current_app.config.get("MAIL_USERNAME") == "your-email@gmail.com":
+            print(f"❌ EMAIL NOT CONFIGURED:")
+            print(f"   Please set MAIL_USERNAME and MAIL_PASSWORD in your .env file")
+            print(f"   OTP Code: {otp} (shown in terminal only)")
+            return False
+            
+        if not current_app.config.get("MAIL_PASSWORD") or current_app.config.get("MAIL_PASSWORD") == "your-app-password":
+            print(f"❌ EMAIL PASSWORD NOT CONFIGURED:")
+            print(f"   Please set MAIL_PASSWORD in your .env file")
+            print(f"   OTP Code: {otp} (shown in terminal only)")
+            return False
+        
+        # Create and send email
         msg = Message(
             subject="Your ClauseEase AI Verification Code",
             recipients=[email],
@@ -40,42 +54,24 @@ Best regards,
 ClauseEase AI Team
             """.strip()
         )
+        
+        print(f"📧 Sending email to: {email}")
+        print(f"📧 Email subject: {msg.subject}")
         mail.send(msg)
+        print(f"✅ Email sent successfully to {email}")
         return True
+        
     except Exception as e:
         current_app.logger.error(f"Failed to send email OTP: {e}")
+        print(f"❌ EMAIL SENDING FAILED:")
+        print(f"   Error: {e}")
+        print(f"   Email: {email}")
+        print(f"   OTP: {otp}")
+        print(f"   Check your email configuration in .env file")
+        print(f"   OTP Code: {otp} (shown in terminal only)")
         return False
 
-def send_sms_otp(phone_number, otp):
-    """Send OTP via SMS - configurable service provider"""
-    try:
-        sms_provider = os.getenv('SMS_SERVICE_PROVIDER', 'console')
-        
-        if sms_provider == 'console':
-            # Development mode - log to console
-            current_app.logger.info(f"📱 SMS OTP for {phone_number}: {otp}")
-            current_app.logger.info(f"💡 In production, this would be sent via {sms_provider}")
-            return True
-            
-        elif sms_provider == 'twilio':
-            # TODO: Implement Twilio SMS service
-            current_app.logger.info(f"📱 SMS OTP for {phone_number}: {otp}")
-            current_app.logger.info(f"🔄 Twilio integration not yet implemented")
-            return True
-            
-        elif sms_provider == 'aws_sns':
-            # TODO: Implement AWS SNS SMS service
-            current_app.logger.info(f"📱 SMS OTP for {phone_number}: {otp}")
-            current_app.logger.info(f"🔄 AWS SNS integration not yet implemented")
-            return True
-            
-        else:
-            current_app.logger.warning(f"Unknown SMS provider: {sms_provider}")
-            return False
-            
-    except Exception as e:
-        current_app.logger.error(f"Failed to send SMS OTP: {e}")
-        return False
+
 
 def verify_otp(user_otp, stored_otp, expires_at):
     """Verify OTP code and check if expired"""
@@ -85,10 +81,4 @@ def verify_otp(user_otp, stored_otp, expires_at):
         return False
     return user_otp == stored_otp
 
-def validate_phone_number(phone_number):
-    """Validate phone number format"""
-    try:
-        parsed = phonenumbers.parse(phone_number, None)
-        return phonenumbers.is_valid_number(parsed)
-    except:
-        return False 
+ 

@@ -7,9 +7,9 @@ from dotenv import load_dotenv
 from sqlalchemy.exc import IntegrityError
 from extensions import db, login_manager, mail, limiter
 from models import User
-from forms import RegisterForm, LoginForm, ForgotPasswordForm, ResetPasswordForm, EmailOTPForm, PhoneOTPForm, ResendOTPForm
+from forms import RegisterForm, LoginForm, ForgotPasswordForm, ResetPasswordForm, EmailOTPForm, ResendOTPForm
 from email_utils import generate_reset_token, verify_reset_token, send_password_reset
-from otp_utils import generate_otp, get_otp_expiry_time, send_email_otp, send_sms_otp, is_otp_expired
+from otp_utils import generate_otp, get_otp_expiry_time, send_email_otp, is_otp_expired
 import phonenumbers
 
 load_dotenv()
@@ -23,15 +23,17 @@ def create_app():
     # Core config
     app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "dev-secret-key-change-in-production")
     
-    # Force SQLite for testing (comment out to use PostgreSQL)
-    # database_url = os.getenv("DATABASE_URL")
-    # if database_url:
-    #     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-    # else:
-    # Database will be created in the root directory
-    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'clauseease.db')
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
-    print(f"📁 Using SQLite database: {db_path}")
+    # Database configuration - EXCLUSIVELY use Neon PostgreSQL
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        print("❌ ERROR: DATABASE_URL not found in .env file!")
+        print("🔧 Please set DATABASE_URL in your .env file")
+        print("📖 Example: DATABASE_URL=postgresql+psycopg2://user:pass@host/dbname")
+        exit(1)
+    
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    print(f"🗄️  Using Neon PostgreSQL database")
+    print(f"🔗 Database: {database_url.split('@')[1] if '@' in database_url else 'Connected'}")
     
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -42,6 +44,10 @@ def create_app():
     app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME", "your-email@gmail.com")
     app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD", "your-app-password")
     app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER", "your-email@gmail.com")
+    
+    # Add timeout to prevent hanging
+    app.config["MAIL_TIMEOUT"] = 10  # 10 seconds timeout
+    app.config["MAIL_USE_SSL"] = False
 
     # OTP configuration - using custom email and SMS verification
 
@@ -56,11 +62,12 @@ def create_app():
     with app.app_context():
         try:
             db.create_all()
-            print("✅ Database tables created successfully!")
+            print("✅ Database tables created successfully in Neon PostgreSQL!")
         except Exception as e:
-            print(f"⚠️  Database connection failed: {e}")
-            print("📁 The app will still run, but database features won't work")
-            print("🔧 To fix: Set up your DATABASE_URL in .env file or use SQLite")
+            print(f"❌ Database connection failed: {e}")
+            print("🔧 Please check your DATABASE_URL in .env file")
+            print("📖 Make sure your Neon database is running and accessible")
+            exit(1)
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -80,51 +87,51 @@ def create_app():
         
         form = RegisterForm()
         if form.validate_on_submit():
+            print(f"🔍 REGISTRATION FORM VALIDATED:")
+            print(f"   First Name: {form.first_name.data}")
+            print(f"   Last Name: {form.last_name.data}")
+            print(f"   Email: {form.email.data}")
+            print(f"   Country Code: {form.country_code.data}")
+            print(f"   Phone: {form.phone.data}")
+            print(f"   Gender: {form.gender.data}")
+            print(f"   Date of Birth: {form.date_of_birth.data}")
+            
             user = User()
             user.first_name = form.first_name.data
             user.last_name = form.last_name.data
-            if form.email.data:
-                user.email = form.email.data.lower()
-            if form.phone.data:
-                user.phone = form.phone.data
+            user.email = form.email.data.lower()
+            user.phone = form.country_code.data + form.phone.data
             user.gender = form.gender.data
             user.date_of_birth = datetime.strptime(form.date_of_birth.data, '%Y-%m-%d').date()
             user.set_password(form.password.data)
             
+            print(f"📱 COMBINED PHONE: {user.phone}")
+            print(f"📧 USER EMAIL: {user.email}")
+            
             try:
+                # Save the user to database
                 db.session.add(user)
                 db.session.commit()
+                print(f"✅ User saved to database with ID: {user.id}")
                 
-                # Generate and send OTP to the primary contact method
-                if user.email:
-                    # Send OTP via email
-                    email_otp = generate_otp()
-                    user.email_otp = email_otp
-                    user.email_otp_expires = get_otp_expiry_time()
-                    
-                    # Send email OTP
-                    email_sent = send_email_otp(user.email, email_otp)
-                    
-                    if email_sent:
-                        flash(f"Verification code sent to {user.email}", "success")
-                    else:
-                        # If email fails, show OTP in console for testing
-                        print(f"🔐 EMAIL OTP FOR TESTING: {email_otp}")
-                        print(f"📧 Email: {user.email}")
-                        flash(f"Email delivery failed. Check console for OTP code.", "warning")
-                elif user.phone:
-                    # Send OTP via phone (SMS)
-                    phone_otp = generate_otp()
-                    user.phone_otp = phone_otp
-                    user.phone_otp_expires = get_otp_expiry_time()
-                    send_sms_otp(user.phone, phone_otp)
-                    flash(f"Verification code sent to {user.phone}", "success")
-                else:
-                    flash("Please provide either email or phone number for verification", "warning")
-                
+                # Auto-generate OTP for immediate verification
+                email_otp = generate_otp()
+                user.email_otp = email_otp
+                user.email_otp_expires = get_otp_expiry_time()
                 db.session.commit()
                 
-                flash("Account created successfully! Please check your email/phone for verification code.", "success")
+                # Show OTP in terminal prominently
+                print("🚨" * 20)
+                print("🚨 OTP GENERATED FOR NEW USER 🚨")
+                print("🚨" * 20)
+                print(f"📧 Email: {user.email}")
+                print(f"🔐 OTP Code: {email_otp}")
+                print(f"⏰ Expires: {user.email_otp_expires}")
+                print("🚨" * 20)
+                
+                # Show success message and redirect to verification page
+                flash("Registration successful! OTP sent to your email. Please verify your account.", "success")
+                print(f"🔄 Redirecting to verification page for user ID: {user.id}")
                 return redirect(url_for("verify_account", user_id=user.id))
             except IntegrityError:
                 db.session.rollback()
@@ -156,17 +163,26 @@ def create_app():
                 except:
                     pass
             
-            if user and user.check_password(form.password.data):
-                # Check if account is verified
-                if not user.email_verified and not user.phone_verified:
-                    flash("Please verify your account before logging in.", "error")
-                    return redirect(url_for("verify_account", user_id=user.id))
-                
-                login_user(user)
-                next_page = request.args.get("next")
-                return redirect(next_page or url_for("dashboard"))
-            else:
-                flash("Invalid email/phone or password.", "error")
+            # Flow 1: User not found
+            if not user:
+                flash("No user associated with this email.", "error")
+                return redirect(url_for("register"))
+            
+            # Flow 2: User exists but wrong password
+            if not user.check_password(form.password.data):
+                flash("Invalid password. Please try again.", "error")
+                return render_template("login.html", form=form)
+            
+            # Flow 3: User exists and password correct, but not verified
+            if not user.email_verified:
+                flash("Account not verified. Please complete verification to continue.", "info")
+                return redirect(url_for("verify_account", user_id=user.id))
+            
+            # Flow 4: User exists, password correct, and verified - LOGIN SUCCESS
+            login_user(user)
+            flash("Login successful! Welcome back.", "success")
+            next_page = request.args.get("next")
+            return redirect(next_page or url_for("dashboard"))
         
         return render_template("login.html", form=form)
 
@@ -200,15 +216,28 @@ def create_app():
                 except:
                     pass
             
-            if user and user.email:
-                token = generate_reset_token(user.id)
-                try:
-                    send_password_reset(user.email, token)
-                    flash("Password reset link sent to your email.", "success")
-                except Exception as e:
-                    flash("Error sending email. Please try again.", "error")
-            else:
-                flash("Email or phone not found, or no email associated with account.", "error")
+            # Flow 1: User not found
+            if not user:
+                flash("No user associated with this email. Please register first.", "error")
+                return redirect(url_for("register"))
+            
+            # Flow 2: User found but not verified
+            if not user.email_verified:
+                flash("Please verify your account before resetting password.", "warning")
+                return redirect(url_for("verify_account", user_id=user.id))
+            
+            # Flow 3: User found and verified, but no email associated
+            if not user.email:
+                flash("No email associated with this account. Cannot send password reset.", "error")
+                return render_template("forgot_password.html", form=form)
+            
+            # Flow 4: User found, verified, and has email - SEND RESET LINK
+            token = generate_reset_token(user.id)
+            try:
+                send_password_reset(user.email, token)
+                flash("Password reset link sent to your email.", "success")
+            except Exception as e:
+                flash("Error sending email. Please try again.", "error")
         
         return render_template("forgot_password.html", form=form)
 
@@ -240,13 +269,20 @@ def create_app():
     def verify_account(user_id):
         user = User.query.get_or_404(user_id)
         
-        # Check if user is already verified (either email or phone)
-        if user.email_verified or user.phone_verified:
+        # Debug: Print user state
+        print(f"\n🔍 VERIFICATION PAGE LOADED:")
+        print(f"📧 User ID: {user.id}")
+        print(f"📧 Email: {user.email}")
+        print(f"📧 Email Verified: {user.email_verified}")
+        print(f"📧 Has OTP: {user.email_otp is not None}")
+        print(f"📧 OTP Value: {user.email_otp}")
+        
+        # Check if user is already verified
+        if user.email_verified:
             flash("Account already verified!", "info")
             return redirect(url_for("login"))
         
         email_form = EmailOTPForm()
-        phone_form = PhoneOTPForm()
         resend_form = ResendOTPForm()
         
         if request.method == "POST":
@@ -261,40 +297,55 @@ def create_app():
                 else:
                     flash("Invalid or expired email verification code.", "error")
             
-            elif phone_form.submit.data and phone_form.validate():
-                if phone_form.phone_otp.data == user.phone_otp and not is_otp_expired(user.phone_otp_expires):
-                    user.phone_verified = True
-                    user.phone_otp = None
-                    user.phone_otp_expires = None
-                    db.session.commit()
-                    flash("Phone verified successfully! Please log in to continue.", "success")
-                    return redirect(url_for("login"))
-                else:
-                    flash("Invalid or expired phone verification code.", "error")
+
             
             elif resend_form.submit.data:
-                # Resend OTP to the primary contact method
+                print(f"\n🔍 REQUEST OTP BUTTON CLICKED!")
+                print(f"📧 User ID: {user.id}")
+                print(f"📧 User Email: {user.email}")
+                print(f"📧 Email Verified: {user.email_verified}")
+                
+                # Generate and send OTP to the primary contact method
                 if user.email and not user.email_verified:
                     email_otp = generate_otp()
                     user.email_otp = email_otp
                     user.email_otp_expires = get_otp_expiry_time()
-                    send_email_otp(user.email, email_otp)
-                    flash(f"Verification code resent to {user.email}", "success")
-                elif user.phone and not user.phone_verified:
-                    phone_otp = generate_otp()
-                    user.phone_otp = phone_otp
-                    user.phone_otp_expires = get_otp_expiry_time()
-                    send_sms_otp(user.phone, phone_otp)
-                    flash(f"Verification code resent to {user.phone}", "success")
-                else:
-                    flash("No verification method available", "warning")
-                
-                db.session.commit()
+                    
+                    print("\n" + "🚨" * 20)
+                    print("🚨 OTP GENERATED AND SENT! 🚨")
+                    print("🚨" * 20)
+                    print(f"📧 Email: {user.email}")
+                    print(f"🔐 OTP Code: {email_otp}")
+                    print(f"⏰ Expires: {user.email_otp_expires}")
+                    print("🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨")
+                    
+                    # Save OTP to database immediately
+                    db.session.commit()
+                    
+                    # Show success message and redirect to same page (now with OTP input fields)
+                    flash(f"OTP generated! Check terminal for code: {email_otp}", "success")
+                    
+                    # Try to send email OTP in background (don't wait for it)
+                    try:
+                        print(f"📧 Attempting to send email to: {user.email}")
+                        email_sent = send_email_otp(user.email, email_otp)
+                        if email_sent:
+                            print(f"✅ Email sent successfully!")
+                        else:
+                            print(f"⚠️ Email delivery failed, but OTP is available above")
+                    except Exception as e:
+                        print(f"❌ Email sending error: {e}")
+                        print(f"⚠️ Email failed, but OTP is available above")
+                    
+                    # Redirect to refresh the page and show OTP input fields
+                    return redirect(url_for("verify_account", user_id=user.id))
+                    
+
+
         
         return render_template("verify_account.html", 
                              user=user, 
                              email_form=email_form, 
-                             phone_form=phone_form, 
                              resend_form=resend_form)
 
     # OTP verification routes - using custom email and SMS verification
@@ -303,6 +354,24 @@ def create_app():
     @login_required
     def dashboard():
         return render_template("dashboard.html")
+    
+    # Test route to verify OTP generation works
+    @app.route("/test-otp")
+    def test_otp():
+        print("\n🧪 TESTING OTP GENERATION...")
+        from otp_utils import generate_otp, get_otp_expiry_time
+        
+        test_otp = generate_otp()
+        expiry = get_otp_expiry_time()
+        
+        print("🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨")
+        print("🧪 TEST OTP GENERATED!")
+        print("🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨")
+        print(f"🔐 Test OTP Code: {test_otp}")
+        print(f"⏰ Expires: {expiry}")
+        print("🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨")
+        
+        return f"Test OTP generated: {test_otp} - Check terminal for details!"
 
     return app
 

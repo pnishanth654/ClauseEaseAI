@@ -6,7 +6,7 @@ import phonenumbers
 class RegisterForm(FlaskForm):
     first_name = StringField("First Name", validators=[DataRequired(), Length(min=2, max=50, message="First name must be between 2 and 50 characters")])
     last_name = StringField("Last Name", validators=[DataRequired(), Length(min=1, max=50, message="Last name must be between 1 and 50 characters")])
-    email = StringField("Email", validators=[Optional(), Email(message="Invalid email")])
+    email = StringField("Email", validators=[DataRequired(), Email(message="Invalid email")])
     country_code = SelectField("Country Code", choices=[
         ('+91', 'India (+91)'),
         ('+1', 'USA (+1)'),
@@ -238,7 +238,7 @@ class RegisterForm(FlaskForm):
         ('+996', '🇰🇬 Kyrgyzstan (+996)'),
         ('+998', '🇺🇿 Uzbekistan (+998)'),
     ], default='+91')
-    phone = StringField("Phone Number", validators=[Optional(), Regexp(r'^\d{10}$', message="Please enter exactly 10 digits")])
+    phone = StringField("Phone Number", validators=[DataRequired(), Regexp(r'^\d{10}$', message="Please enter exactly 10 digits")])
     gender = SelectField("Gender", choices=[
         ('', 'Select Gender'),
         ('male', 'Male'),
@@ -258,10 +258,17 @@ class RegisterForm(FlaskForm):
     def validate(self, extra_validators=None):
         if not super().validate():
             return False
-        if not self.email.data and not self.phone.data:
-            self.email.errors.append("Provide email or phone.")
-            self.phone.errors.append("Provide email or phone.")
+        
+        # Both email and phone are now mandatory
+        if not self.email.data:
+            self.email.errors.append("Email is required.")
             return False
+        
+        if not self.phone.data:
+            self.phone.errors.append("Phone number is required.")
+            return False
+        
+        # Validate phone number format
         if self.phone.data:
             # Combine country code with phone number
             full_phone = self.country_code.data + self.phone.data
@@ -270,8 +277,8 @@ class RegisterForm(FlaskForm):
                 if not phonenumbers.is_valid_number(parsed):
                     self.phone.errors.append("Invalid phone number")
                     return False
-                # Store the full phone number with country code
-                self.phone.data = phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.E164)
+                # Don't modify self.phone.data here - keep the 10-digit input
+                # The combination will be done in app.py before saving to database
             except Exception:
                 self.phone.errors.append("Invalid phone number")
                 return False
@@ -299,9 +306,7 @@ class EmailOTPForm(FlaskForm):
     email_otp = StringField("Email Verification Code", validators=[DataRequired(), Length(min=6, max=6, message="Please enter the 6-digit code")])
     submit = SubmitField("Verify Email")
 
-class PhoneOTPForm(FlaskForm):
-    phone_otp = StringField("Phone Verification Code", validators=[DataRequired(), Length(min=6, max=6, message="Please enter the 6-digit code")])
-    submit = SubmitField("Verify Phone")
+
 
 class ResendOTPForm(FlaskForm):
     submit = SubmitField("Resend Code") 

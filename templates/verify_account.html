@@ -13,7 +13,7 @@
                     </div>
                 </div>
                 <h1>Verify Your Account</h1>
-                <p>Please verify your email to activate your account</p>
+                <p>Enter the verification code sent to your email to activate your account</p>
             </div>
         </div>
 
@@ -24,38 +24,43 @@
                     <!-- Email Verification -->
                     <div class="card border-0 shadow-sm">
                         <div class="card-body p-5">
+
+                            
                             <div class="text-center mb-5">
                                 <p class="text-muted mb-0">
-                                    Enter the 6-digit code sent to<br>
+                                    Verification code sent to<br>
                                     <strong class="text-break">{{ user.email }}</strong>
                                 </p>
+                                <p class="text-muted small mt-2">Please enter the 6-digit code to verify your account</p>
                             </div>
                             
-                            <form method="POST" id="email-otp-form">
-                                {{ email_form.hidden_tag() }}
-                                <div class="mb-5">
-                                    <div class="otp-dashes-container">
-                                        <input type="text" class="otp-dash-input" maxlength="1" data-index="0" placeholder="">
-                                        <input type="text" class="otp-dash-input" maxlength="1" data-index="1" placeholder="">
-                                        <input type="text" class="otp-dash-input" maxlength="1" data-index="2" placeholder="">
-                                        <input type="text" class="otp-dash-input" maxlength="1" data-index="3" placeholder="">
-                                        <input type="text" class="otp-dash-input" maxlength="1" data-index="4" placeholder="">
-                                        <input type="text" class="otp-dash-input" maxlength="1" data-index="5" placeholder="">
+                            {% if user.email_otp %}
+                                <form method="POST" id="email-otp-form">
+                                    {{ email_form.hidden_tag() }}
+                                    <div class="mb-5">
+                                        <div class="otp-dashes-container">
+                                            <input type="text" class="otp-dash-input" maxlength="1" data-index="0" placeholder="">
+                                            <input type="text" class="otp-dash-input" maxlength="1" data-index="1" placeholder="">
+                                            <input type="text" class="otp-dash-input" maxlength="1" data-index="2" placeholder="">
+                                            <input type="text" class="otp-dash-input" maxlength="1" data-index="3" placeholder="">
+                                            <input type="text" class="otp-dash-input" maxlength="1" data-index="4" placeholder="">
+                                            <input type="text" class="otp-dash-input" maxlength="1" data-index="5" placeholder="">
+                                        </div>
+                                        <!-- Hidden field to store the complete OTP -->
+                                        <input type="hidden" name="email_otp" id="email-otp-complete">
+                                        {% if email_form.email_otp.errors %}
+                                            {% for error in email_form.email_otp.errors %}
+                                                <div class="invalid-feedback d-block text-center">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
                                     </div>
-                                    <!-- Hidden field to store the complete OTP -->
-                                    <input type="hidden" name="email_otp" id="email-otp-complete">
-                                    {% if email_form.email_otp.errors %}
-                                        {% for error in email_form.email_otp.errors %}
-                                            <div class="invalid-feedback d-block text-center">{{ error }}</div>
-                                        {% endfor %}
-                                    {% endif %}
-                                </div>
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary btn-lg py-3">
-                                        <i class="bi bi-check-circle me-2"></i>Verify OTP
-                                    </button>
-                                </div>
-                            </form>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary btn-lg py-3">
+                                            <i class="bi bi-check-circle me-2"></i>Verify OTP
+                                        </button>
+                                    </div>
+                                </form>
+                            {% endif %}
                         </div>
                     </div>
                     
@@ -96,7 +101,7 @@
             <span class="text-muted me-2">Didn't receive the code?</span>
             <form method="POST" class="d-inline">
                 {{ resend_form.hidden_tag() }}
-                {{ resend_form.submit(class="btn btn-outline-secondary") }}
+                {{ resend_form.submit(class="btn btn-outline-secondary", value="Resend Code") }}
             </form>
         </div>
 
