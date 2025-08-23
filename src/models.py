@@ -41,4 +41,8 @@ class User(UserMixin, db.Model):
             return check_password_hash(self.password_hash, password)
         except Exception as e:
             print(f"Password check error: {e}")
-            return False 
+            return False
+    
+    def is_same_password(self, new_password: str) -> bool:
+        """Check if the new password is the same as the current password"""
+        return self.check_password(new_password) 

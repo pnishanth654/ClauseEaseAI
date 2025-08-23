@@ -258,9 +258,15 @@ def create_app():
         
         form = ResetPasswordForm()
         if form.validate_on_submit():
+            # Check if new password is the same as current password
+            if user.is_same_password(form.password.data):
+                flash("❌ Your new password cannot be the same as your current password! Please choose a different password.", "error")
+                return render_template("reset_password.html", form=form)
+            
+            # Set new password if it's different
             user.set_password(form.password.data)
             db.session.commit()
-            flash("Password updated successfully! Please log in.", "success")
+            flash("✅ Password updated successfully! Please log in.", "success")
             return redirect(url_for("login"))
         
         return render_template("reset_password.html", form=form)
