@@ -13,99 +13,49 @@
                     </div>
                 </div>
                 <h1>Verify Your Account</h1>
-                <p>Please verify your email and phone to activate your account</p>
+                <p>Please verify your email to activate your account</p>
             </div>
         </div>
 
-                <!-- Single OTP Verification Info -->
-        <div class="verification-info mb-4">
-            <div class="alert alert-info border-0">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-info-circle-fill fs-4 me-3"></i>
-                    <div>
-                        <h6 class="mb-1">🔐 Single OTP Verification</h6>
-                        <p class="mb-0 small">
-                            You'll receive a 6-digit OTP via <strong>email</strong> or <strong>phone</strong> (based on what you provided during registration).
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Single OTP Verification Section -->
         <div class="row justify-content-center">
-            <div class="col-lg-8">
+            <div class="col-lg-10">
                 {% if user.email and not user.email_verified %}
                     <!-- Email Verification -->
                     <div class="card border-0 shadow-sm">
-                        <div class="card-body p-4">
-                            <div class="text-center mb-4">
-                                <div class="verification-icon mb-3">
-                                    <i class="bi bi-envelope text-primary fs-1"></i>
-                                </div>
-                                <h4 class="card-title">Email Verification</h4>
-                                <p class="text-muted">
-                                    We've sent a 6-digit verification code to:<br>
+                        <div class="card-body p-5">
+                            <div class="text-center mb-5">
+                                <p class="text-muted mb-0">
+                                    Enter the 6-digit code sent to<br>
                                     <strong class="text-break">{{ user.email }}</strong>
                                 </p>
                             </div>
                             
-                            <form method="POST">
+                            <form method="POST" id="email-otp-form">
                                 {{ email_form.hidden_tag() }}
-                                <div class="mb-3">
-                                    <label class="form-label">Enter 6-digit code</label>
-                                    {{ email_form.email_otp(class="form-control form-control-lg text-center" + (" is-invalid" if email_form.email_otp.errors else ""), placeholder="000000", maxlength="6") }}
+                                <div class="mb-5">
+                                    <div class="otp-dashes-container">
+                                        <input type="text" class="otp-dash-input" maxlength="1" data-index="0" placeholder="">
+                                        <input type="text" class="otp-dash-input" maxlength="1" data-index="1" placeholder="">
+                                        <input type="text" class="otp-dash-input" maxlength="1" data-index="2" placeholder="">
+                                        <input type="text" class="otp-dash-input" maxlength="1" data-index="3" placeholder="">
+                                        <input type="text" class="otp-dash-input" maxlength="1" data-index="4" placeholder="">
+                                        <input type="text" class="otp-dash-input" maxlength="1" data-index="5" placeholder="">
+                                    </div>
+                                    <!-- Hidden field to store the complete OTP -->
+                                    <input type="hidden" name="email_otp" id="email-otp-complete">
                                     {% if email_form.email_otp.errors %}
                                         {% for error in email_form.email_otp.errors %}
-                                            <div class="invalid-feedback">{{ error }}</div>
+                                            <div class="invalid-feedback d-block text-center">{{ error }}</div>
                                         {% endfor %}
                                     {% endif %}
                                 </div>
-                                <div class="d-grid gap-2">
-                                    {{ email_form.submit(class="btn btn-primary btn-lg") }}
-                                    <button type="button" class="btn btn-outline-secondary" id="resend-email-btn">
-                                        <i class="bi bi-arrow-clockwise"></i> Resend Code
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg py-3">
+                                        <i class="bi bi-check-circle me-2"></i>Verify OTP
                                     </button>
                                 </div>
                             </form>
-                        </div>
-                    </div>
-                    
-                {% elif user.phone and not user.phone_verified %}
-                    <!-- Phone Verification -->
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body p-4">
-                            <div class="text-center mb-4">
-                                <div class="verification-icon mb-3">
-                                    <i class="bi bi-phone text-success fs-1"></i>
-                                </div>
-                                <h4 class="card-title">Phone Verification</h4>
-                                <p class="text-muted">
-                                    We'll send a 6-digit verification code to:<br>
-                                    <strong>{{ user.phone }}</strong>
-                                </p>
-                            </div>
-                            
-                            <!-- Simple OTP Form for Phone Verification -->
-                            <div id="phone-otp-form">
-                                <form method="POST">
-                                    {{ phone_form.hidden_tag() }}
-                                    <div class="mb-3">
-                                        <label class="form-label">Enter 6-digit code from SMS</label>
-                                        {{ phone_form.phone_otp(class="form-control form-control-lg text-center" + (" is-invalid" if phone_form.phone_otp.errors else ""), placeholder="000000", maxlength="6") }}
-                                        {% if phone_form.phone_otp.errors %}
-                                            {% for error in phone_form.phone_otp.errors %}
-                                                <div class="invalid-feedback">{{ error }}</div>
-                                            {% endfor %}
-                                        {% endif %}
-                                    </div>
-                                    <div class="d-grid">
-                                        {{ phone_form.submit(class="btn btn-success btn-lg") }}
-                                    </div>
-                                </form>
-                            </div>
-                            
-
                         </div>
                     </div>
                     
@@ -113,7 +63,7 @@
                     <!-- No verification needed or no contact method -->
                     <div class="card border-0 shadow-sm">
                         <div class="card-body p-4 text-center">
-                            {% if user.email_verified and user.phone_verified %}
+                            {% if user.email_verified %}
                                 <div class="verification-icon mb-3">
                                     <i class="bi bi-check-circle text-success fs-1"></i>
                                 </div>
@@ -128,9 +78,9 @@
                                 <div class="verification-icon mb-3">
                                     <i class="bi bi-exclamation-triangle text-warning fs-1"></i>
                                 </div>
-                                <h4 class="card-title">No Contact Method</h4>
+                                <h4 class="card-title">No Email Provided</h4>
                                 <p class="text-muted">
-                                    You haven't provided an email or phone number for verification.
+                                    You haven't provided an email address for verification.
                                 </p>
                                 <a href="{{ url_for('register') }}" class="btn btn-primary">
                                     <i class="bi bi-arrow-left"></i> Go Back to Registration
@@ -142,15 +92,15 @@
             </div>
         </div>
 
-        <div class="mt-4">
+        <div class="mt-4 text-center">
+            <span class="text-muted me-2">Didn't receive the code?</span>
             <form method="POST" class="d-inline">
                 {{ resend_form.hidden_tag() }}
                 {{ resend_form.submit(class="btn btn-outline-secondary") }}
             </form>
-            <span class="text-muted ms-2">Didn't receive the code?</span>
         </div>
 
-        <div class="auth-links mt-3">
+        <div class="auth-links mt-3 text-center">
             <p>Already verified? <a href="{{ url_for('login') }}">Log in</a></p>
         </div>
     </div>

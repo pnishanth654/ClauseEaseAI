@@ -124,7 +124,7 @@ def create_app():
                 
                 db.session.commit()
                 
-                flash("Account created! Please verify your email/phone to activate your account.", "success")
+                flash("Account created successfully! Please check your email/phone for verification code.", "success")
                 return redirect(url_for("verify_account", user_id=user.id))
             except IntegrityError:
                 db.session.rollback()
@@ -256,7 +256,8 @@ def create_app():
                     user.email_otp = None
                     user.email_otp_expires = None
                     db.session.commit()
-                    flash("Email verified successfully!", "success")
+                    flash("Email verified successfully! Please log in to continue.", "success")
+                    return redirect(url_for("login"))
                 else:
                     flash("Invalid or expired email verification code.", "error")
             
@@ -266,7 +267,8 @@ def create_app():
                     user.phone_otp = None
                     user.phone_otp_expires = None
                     db.session.commit()
-                    flash("Phone verified successfully!", "success")
+                    flash("Phone verified successfully! Please log in to continue.", "success")
+                    return redirect(url_for("login"))
                 else:
                     flash("Invalid or expired phone verification code.", "error")
             

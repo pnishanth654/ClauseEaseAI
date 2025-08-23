@@ -21,8 +21,8 @@
     <!-- Firebase removed - using simple OTP instead -->
     <script>
         // Pass current user ID to JavaScript
-        {% if user %}
-        window.currentUserId = {{ user.id }};
+        {% if current_user.is_authenticated %}
+        window.currentUserId = {{ current_user.id }};
         {% endif %}
     </script>
     
@@ -49,7 +49,7 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             max-width: 600px;
             width: 100%;
-            padding: 2.5rem;
+            padding: 4rem 3rem;
         }
         
         .login-card {
@@ -544,6 +544,241 @@
             font-size: 1.1rem;
             border-radius: 12px;
         }
+        
+        /* OTP Input Styles */
+        .otp-input-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .otp-input {
+            width: 50px;
+            height: 60px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            background: #fff;
+            transition: all 0.3s ease;
+            outline: none;
+            box-sizing: border-box;
+        }
+        
+        .otp-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .otp-input:not(:placeholder-shown) {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+        
+        .otp-input::placeholder {
+            color: #adb5bd;
+            font-size: 18px;
+        }
+        
+        /* Large OTP Input Styles (New Design) */
+        .otp-input-container-large {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .otp-input-large {
+            width: 65px;
+            height: 75px;
+            border: 2px solid #e9ecef;
+            border-radius: 16px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            background: #fff;
+            transition: all 0.3s ease;
+            outline: none;
+            box-sizing: border-box;
+        }
+        
+        .otp-input-large:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.3rem rgba(102, 126, 234, 0.25);
+            transform: translateY(-3px);
+        }
+        
+        .otp-input-large:not(:placeholder-shown) {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+        
+        .otp-input-large::placeholder {
+            color: #adb5bd;
+            font-size: 22px;
+        }
+        
+        /* OTP Icon Styles */
+        .otp-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .otp-icon-inner {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .otp-icon-inner span {
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        /* OTP Dashes Styles (New Design) */
+        .otp-dashes-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 40px 0;
+            flex-wrap: nowrap;
+        }
+        
+        .otp-dash-input {
+            width: 45px;
+            height: 55px;
+            border: none;
+            border-bottom: 3px solid #e9ecef;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            background: transparent;
+            outline: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .otp-dash-input:focus {
+            border-bottom-color: #667eea;
+            transform: translateY(-2px);
+        }
+        
+        .otp-dash-input:not(:placeholder-shown) {
+            border-bottom-color: #28a745;
+            color: #28a745;
+        }
+        
+        .otp-dash-input::placeholder {
+            color: #adb5bd;
+            font-size: 20px;
+        }
+        
+        /* Responsive adjustments for dash inputs */
+        @media (max-width: 576px) {
+            .otp-dashes-container {
+                gap: 12px;
+            }
+            
+            .otp-dash-input {
+                width: 40px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .otp-dashes-container {
+                gap: 8px;
+            }
+            
+            .otp-dash-input {
+                width: 35px;
+                height: 45px;
+                font-size: 18px;
+            }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 576px) {
+            .otp-input-container {
+                gap: 8px;
+            }
+            
+            .otp-input {
+                width: 45px;
+                height: 55px;
+                font-size: 20px;
+            }
+            
+            .otp-input-container-large {
+                gap: 12px;
+            }
+            
+            .otp-input-large {
+                width: 55px;
+                height: 65px;
+                font-size: 24px;
+            }
+            
+            .otp-icon {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .otp-icon-inner span {
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .otp-input-container {
+                gap: 6px;
+            }
+            
+            .otp-input {
+                width: 40px;
+                height: 50px;
+                font-size: 18px;
+            }
+            
+            .otp-input-container-large {
+                gap: 10px;
+            }
+            
+            .otp-input-large {
+                width: 50px;
+                height: 60px;
+                font-size: 22px;
+            }
+            
+            .otp-icon {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .otp-icon-inner span {
+                font-size: 14px;
+            }
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
@@ -591,6 +826,112 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Firebase Authentication Script removed - using simple OTP instead -->
+    
+    <!-- OTP Input Functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Function to handle OTP input behavior
+            function setupOTPInputs(containerId, hiddenFieldId) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                
+                const inputs = container.querySelectorAll('.otp-input');
+                const hiddenField = document.getElementById(hiddenFieldId);
+                
+                inputs.forEach((input, index) => {
+                    // Auto-focus next input when typing
+                    input.addEventListener('input', function(e) {
+                        if (e.target.value.length === 1) {
+                            if (index < inputs.length - 1) {
+                                inputs[index + 1].focus();
+                            }
+                        }
+                    });
+                    
+                    // Handle backspace
+                    input.addEventListener('keydown', function(e) {
+                        if (e.key === 'Backspace' && e.target.value === '') {
+                            if (index > 0) {
+                                inputs[index - 1].focus();
+                            }
+                        }
+                    });
+                    
+                    // Handle paste
+                    input.addEventListener('paste', function(e) {
+                        e.preventDefault();
+                        const pastedData = e.clipboardData.getData('text').slice(0, 6);
+                        if (/^\d{6}$/.test(pastedData)) {
+                            inputs.forEach((input, i) => {
+                                input.value = pastedData[i] || '';
+                            });
+                            updateHiddenField();
+                        }
+                    });
+                    
+                    // Update hidden field when input changes
+                    input.addEventListener('input', updateHiddenField);
+                });
+                
+                function updateHiddenField() {
+                    const otpValue = Array.from(inputs).map(input => input.value).join('');
+                    if (hiddenField) {
+                        hiddenField.value = otpValue;
+                    }
+                }
+            }
+            
+            // Setup OTP inputs for email form only
+            setupOTPInputs('email-otp-form', 'email-otp-complete');
+            
+            // Setup dash inputs for better UX
+            const dashInputs = document.querySelectorAll('.otp-dash-input');
+            const hiddenField = document.getElementById('email-otp-complete');
+            
+            dashInputs.forEach((input, index) => {
+                // Auto-focus next input when typing
+                input.addEventListener('input', function(e) {
+                    if (e.target.value.length === 1) {
+                        if (index < dashInputs.length - 1) {
+                            dashInputs[index + 1].focus();
+                        }
+                    }
+                    updateHiddenField();
+                });
+                
+                // Handle backspace
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && e.target.value === '') {
+                        if (index > 0) {
+                            dashInputs[index - 1].focus();
+                        }
+                    }
+                });
+                
+                // Handle paste
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pastedData = e.clipboardData.getData('text').slice(0, 6);
+                    if (/^\d{6}$/.test(pastedData)) {
+                        dashInputs.forEach((input, i) => {
+                            input.value = pastedData[i] || '';
+                        });
+                        updateHiddenField();
+                        // Focus the last filled input or first empty one
+                        const lastFilledIndex = Math.min(pastedData.length - 1, dashInputs.length - 1);
+                        dashInputs[lastFilledIndex].focus();
+                    }
+                });
+            });
+            
+            function updateHiddenField() {
+                const otpValue = Array.from(dashInputs).map(input => input.value).join('');
+                if (hiddenField) {
+                    hiddenField.value = otpValue;
+                }
+            }
+        });
+    </script>
     
     {% block extra_js %}{% endblock %}
 </body>
