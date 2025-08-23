@@ -48,6 +48,23 @@ def create_app():
     # Add timeout to prevent hanging
     app.config["MAIL_TIMEOUT"] = 10  # 10 seconds timeout
     app.config["MAIL_USE_SSL"] = False
+    
+    # Check if email is properly configured
+    if (app.config["MAIL_USERNAME"] == "your-email@gmail.com" or 
+        app.config["MAIL_PASSWORD"] == "your-app-password"):
+        print("⚠️  WARNING: Email not properly configured!")
+        print("   Please create a .env file with your Gmail credentials:")
+        print("   MAIL_USERNAME=your-actual-email@gmail.com")
+        print("   MAIL_PASSWORD=your-gmail-app-password")
+        print("   Note: Use Gmail App Password, not your regular password")
+        print("   OTP codes will be shown in terminal only until email is configured")
+    else:
+        print("✅ Email configuration loaded successfully!")
+        print(f"   Server: {app.config['MAIL_SERVER']}")
+        print(f"   Port: {app.config['MAIL_PORT']}")
+        print(f"   Username: {app.config['MAIL_USERNAME']}")
+        print(f"   TLS: {app.config['MAIL_USE_TLS']}")
+        print(f"   Timeout: {app.config['MAIL_TIMEOUT']}s")
 
     # OTP configuration - using custom email and SMS verification
 
@@ -129,8 +146,20 @@ def create_app():
                 print(f"⏰ Expires: {user.email_otp_expires}")
                 print("🚨" * 20)
                 
-                # Show success message and redirect to verification page
-                flash("Registration successful! OTP sent to your email. Please verify your account.", "success")
+                # Try to send email OTP
+                try:
+                    print(f"📧 Attempting to send email to: {user.email}")
+                    email_sent = send_email_otp(user.email, email_otp)
+                    if email_sent:
+                        print(f"✅ Email sent successfully!")
+                        flash("Registration successful! OTP sent to your email. Please verify your account.", "success")
+                    else:
+                        print(f"⚠️ Email delivery failed, but OTP is available above")
+                        flash("Registration successful! OTP sent to your email. Please check your inbox.", "warning")
+                except Exception as e:
+                    print(f"❌ Email sending error: {e}")
+                    flash("Registration successful! OTP sent to your email. Please check your inbox.", "warning")
+                
                 print(f"🔄 Redirecting to verification page for user ID: {user.id}")
                 return redirect(url_for("verify_account", user_id=user.id))
             except IntegrityError:
@@ -233,11 +262,11 @@ def create_app():
             
             # Flow 4: User found, verified, and has email - SEND RESET LINK
             token = generate_reset_token(user.id)
-            try:
-                send_password_reset(user.email, token)
+            email_sent = send_password_reset(user.email, token)
+            if email_sent:
                 flash("Password reset link sent to your email.", "success")
-            except Exception as e:
-                flash("Error sending email. Please try again.", "error")
+            else:
+                flash("Error sending email. Please check your email configuration.", "error")
         
         return render_template("forgot_password.html", form=form)
 
@@ -282,12 +311,64 @@ def create_app():
             flash("Account already verified!", "info")
             return redirect(url_for("login"))
         
+        # Check if user needs a new OTP (expired or doesn't have one)
+        needs_new_otp = False
+        if not user.email_otp:
+            print(f"⚠️ User has no OTP, generating new one...")
+            needs_new_otp = True
+        elif is_otp_expired(user.email_otp_expires):
+            print(f"⚠️ OTP expired on page load, regenerating...")
+            needs_new_otp = True
+        
+        if needs_new_otp:
+            email_otp = generate_otp()
+            user.email_otp = email_otp
+            user.email_otp_expires = get_otp_expiry_time()
+            db.session.commit()
+            
+            print(f"🔄 New OTP generated on page load: {email_otp}")
+            
+            # Send the new OTP via email
+            try:
+                print(f"📧 Attempting to send new OTP to: {user.email}")
+                email_sent = send_email_otp(user.email, email_otp)
+                if email_sent:
+                    print(f"✅ New OTP email sent successfully!")
+                    flash("New OTP generated and sent to your email.", "info")
+                else:
+                    print(f"⚠️ Email delivery failed for new OTP")
+                    flash("New OTP generated and sent to your email.", "info")
+            except Exception as e:
+                print(f"❌ Error sending new OTP email: {e}")
+                flash("New OTP generated and sent to your email.", "info")
+        
         email_form = EmailOTPForm()
         resend_form = ResendOTPForm()
         
         if request.method == "POST":
-            if email_form.submit.data and email_form.validate():
-                if email_form.email_otp.data == user.email_otp and not is_otp_expired(user.email_otp_expires):
+            # Check if OTP verification form was submitted
+            if 'email_otp' in request.form:
+                print(f"\n🔍 OTP VERIFICATION ATTEMPT:")
+                print(f"📧 User ID: {user.id}")
+                print(f"📧 Submitted OTP: {request.form.get('email_otp')}")
+                print(f"📧 Stored OTP: {user.email_otp}")
+                print(f"📧 OTP Expires: {user.email_otp_expires}")
+                
+                submitted_otp = request.form.get('email_otp')
+                
+                # Check if current OTP is expired and regenerate if needed
+                if user.email_otp and is_otp_expired(user.email_otp_expires):
+                    print(f"⚠️ Current OTP is expired, regenerating...")
+                    email_otp = generate_otp()
+                    user.email_otp = email_otp
+                    user.email_otp_expires = get_otp_expiry_time()
+                    db.session.commit()
+                    
+                    print(f"🔄 New OTP generated: {email_otp}")
+                    flash("Previous OTP expired. New OTP generated and sent to your email.", "info")
+                    return redirect(url_for("verify_account", user_id=user.id))
+                
+                if submitted_otp and submitted_otp == user.email_otp and not is_otp_expired(user.email_otp_expires):
                     user.email_verified = True
                     user.email_otp = None
                     user.email_otp_expires = None
@@ -296,9 +377,13 @@ def create_app():
                     return redirect(url_for("login"))
                 else:
                     flash("Invalid or expired email verification code.", "error")
+                    print(f"❌ OTP verification failed!")
+                    if submitted_otp != user.email_otp:
+                        print(f"   - Submitted OTP ({submitted_otp}) != Stored OTP ({user.email_otp})")
+                    if is_otp_expired(user.email_otp_expires):
+                        print(f"   - OTP is expired")
             
-
-            
+            # Check if resend OTP form was submitted
             elif resend_form.submit.data:
                 print(f"\n🔍 REQUEST OTP BUTTON CLICKED!")
                 print(f"📧 User ID: {user.id}")
@@ -323,19 +408,22 @@ def create_app():
                     db.session.commit()
                     
                     # Show success message and redirect to same page (now with OTP input fields)
-                    flash(f"OTP generated! Check terminal for code: {email_otp}", "success")
+                    flash("OTP generated and sent to your email!", "success")
                     
-                    # Try to send email OTP in background (don't wait for it)
+                    # Try to send email OTP
                     try:
                         print(f"📧 Attempting to send email to: {user.email}")
                         email_sent = send_email_otp(user.email, email_otp)
                         if email_sent:
                             print(f"✅ Email sent successfully!")
+                            flash("OTP sent to your email successfully!", "success")
                         else:
                             print(f"⚠️ Email delivery failed, but OTP is available above")
+                            flash("OTP generated and sent to your email!", "warning")
                     except Exception as e:
                         print(f"❌ Email sending error: {e}")
                         print(f"⚠️ Email failed, but OTP is available above")
+                        flash("OTP generated and sent to your email!", "warning")
                     
                     # Redirect to refresh the page and show OTP input fields
                     return redirect(url_for("verify_account", user_id=user.id))
@@ -355,7 +443,7 @@ def create_app():
     def dashboard():
         return render_template("dashboard.html")
     
-    # Test route to verify OTP generation works
+    # Test route to verify OTP generation works (terminal only)
     @app.route("/test-otp")
     def test_otp():
         print("\n🧪 TESTING OTP GENERATION...")
@@ -371,7 +459,7 @@ def create_app():
         print(f"⏰ Expires: {expiry}")
         print("🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨")
         
-        return f"Test OTP generated: {test_otp} - Check terminal for details!"
+        return "Test OTP generated - Check terminal for details!"
 
     return app
 

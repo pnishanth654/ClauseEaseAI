@@ -20,10 +20,18 @@ def verify_reset_token(token: str, max_age_seconds: int = 3600):
 
 
 def send_password_reset(email: str, token: str):
-    reset_url = url_for("reset_password", token=token, _external=True)
-    msg = Message(
-        subject="Reset your password",
-        recipients=[email],
-        body=f"Use the link below to reset your password (valid for 1 hour):\n{reset_url}\nIf you didn't request this, ignore this email."
-    )
-    mail.send(msg) 
+    try:
+        reset_url = url_for("reset_password", token=token, _external=True)
+        msg = Message(
+            subject="Reset your password",
+            recipients=[email],
+            body=f"Use the link below to reset your password (valid for 1 hour):\n{reset_url}\nIf you didn't request this, ignore this email."
+        )
+        mail.send(msg)
+        print(f"✅ Password reset email sent successfully to: {email}")
+        return True
+    except Exception as e:
+        print(f"❌ Failed to send password reset email: {e}")
+        print(f"   Email: {email}")
+        print(f"   Check your email configuration in .env file")
+        return False 

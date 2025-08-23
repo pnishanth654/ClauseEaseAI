@@ -48,6 +48,8 @@
                                         </div>
                                         <!-- Hidden field to store the complete OTP -->
                                         <input type="hidden" name="email_otp" id="email-otp-complete">
+                                        <!-- Add the actual form field for validation -->
+                                        {{ email_form.email_otp(type="hidden") }}
                                         {% if email_form.email_otp.errors %}
                                             {% for error in email_form.email_otp.errors %}
                                                 <div class="invalid-feedback d-block text-center">{{ error }}</div>
@@ -60,6 +62,14 @@
                                         </button>
                                     </div>
                                 </form>
+                                
+                                <!-- Debug info (remove in production) -->
+                                <div class="mt-3 text-center">
+                                    <small class="text-muted">
+                                        Debug: OTP in database: {{ user.email_otp }} | 
+                                        Expires: {{ user.email_otp_expires }}
+                                    </small>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
@@ -110,4 +120,82 @@
         </div>
     </div>
 </div>
+
+<!-- Add JavaScript to sync the custom OTP inputs with the form field -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const otpInputs = document.querySelectorAll('.otp-dash-input');
+    const hiddenField = document.getElementById('email-otp-complete');
+    const formField = document.querySelector('input[name="email_otp"]');
+    
+    console.log('OTP Form initialized:', {
+        otpInputs: otpInputs.length,
+        hiddenField: hiddenField,
+        formField: formField
+    });
+    
+    function updateOTPValue() {
+        const otpValue = Array.from(otpInputs).map(input => input.value).join('');
+        if (hiddenField) {
+            hiddenField.value = otpValue;
+        }
+        if (formField) {
+            formField.value = otpValue;
+        }
+        console.log('OTP Value updated:', otpValue);
+    }
+    
+    // Update OTP value when any input changes
+    otpInputs.forEach((input, index) => {
+        input.addEventListener('input', function(e) {
+            console.log(`Input ${index} changed to:`, e.target.value);
+            updateOTPValue();
+            
+            // Auto-focus next input
+            if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+                otpInputs[index + 1].focus();
+            }
+        });
+        
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && e.target.value === '') {
+                if (index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            }
+        });
+        
+        input.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text').slice(0, 6);
+            if (/^\d{6}$/.test(pastedData)) {
+                otpInputs.forEach((input, i) => {
+                    input.value = pastedData[i] || '';
+                });
+                updateOTPValue();
+                console.log('Pasted OTP:', pastedData);
+            }
+        });
+    });
+    
+    // Also update on form submission
+    const form = document.getElementById('email-otp-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            updateOTPValue();
+            const finalOTP = hiddenField ? hiddenField.value : 'N/A';
+            console.log('Form submitted with OTP:', finalOTP);
+            
+            if (!finalOTP || finalOTP.length !== 6) {
+                e.preventDefault();
+                alert('Please enter a complete 6-digit OTP code');
+                return false;
+            }
+        });
+    }
+    
+    // Initial update
+    updateOTPValue();
+});
+</script>
 {% endblock %} 

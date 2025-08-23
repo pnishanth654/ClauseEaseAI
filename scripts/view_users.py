@@ -35,7 +35,6 @@ def view_users():
                 print(f"   Gender: {user.gender}")
                 print(f"   Date of Birth: {user.date_of_birth}")
                 print(f"   Email Verified: {'✅ Yes' if user.email_verified else '❌ No'}")
-                print(f"   Phone Verified: {'✅ Yes' if user.phone_verified else '❌ No'}")
                 print(f"   Created: {user.created_at}")
                 print(f"   Last Updated: {user.updated_at}")
                 print("-" * 80)

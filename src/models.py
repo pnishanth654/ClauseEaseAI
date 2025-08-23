@@ -16,11 +16,8 @@ class User(UserMixin, db.Model):
     date_of_birth = db.Column(db.Date, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     email_verified = db.Column(db.Boolean, default=False)
-    phone_verified = db.Column(db.Boolean, default=False)
     email_otp = db.Column(db.String(6), nullable=True)
-    phone_otp = db.Column(db.String(6), nullable=True)
     email_otp_expires = db.Column(db.DateTime, nullable=True)
-    phone_otp_expires = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

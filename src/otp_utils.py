@@ -1,7 +1,7 @@
 import random
 import string
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from flask import current_app
 from flask_mail import Message
 from extensions import mail
@@ -14,18 +14,51 @@ def generate_otp(length=6):
 def is_otp_expired(expires_at):
     """Check if OTP has expired"""
     if not expires_at:
+        print(f"❌ OTP expiry check failed: expires_at is None")
         return True
-    return datetime.utcnow() > expires_at
+    
+    # Get current time in UTC
+    current_time = datetime.now(timezone.utc)
+    
+    # If expires_at is naive (no timezone), assume it's UTC
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    
+    # Debug time comparison
+    print(f"🔍 OTP Expiry Check:")
+    print(f"   Current UTC time: {current_time}")
+    print(f"   Expires at: {expires_at}")
+    print(f"   Time difference: {expires_at - current_time}")
+    print(f"   Is expired: {current_time > expires_at}")
+    
+    return current_time > expires_at
 
 def get_otp_expiry_time(minutes=None):
     """Get OTP expiry time (default from env or 10 minutes)"""
     if minutes is None:
+        # Default to 10 minutes for security
         minutes = int(os.getenv('OTP_EXPIRY_MINUTES', 10))
-    return datetime.utcnow() + timedelta(minutes=minutes)
+    
+    # Use timezone-aware datetime
+    expiry_time = datetime.now(timezone.utc) + timedelta(minutes=minutes)
+    print(f"🔍 OTP Expiry Time Generated:")
+    print(f"   Current UTC: {datetime.now(timezone.utc)}")
+    print(f"   Expires in: {minutes} minutes")
+    print(f"   Expiry time: {expiry_time}")
+    
+    return expiry_time
 
 def send_email_otp(email, otp):
     """Send OTP via email"""
     try:
+        # Debug: Print current mail configuration
+        print(f"🔍 DEBUG: Mail Configuration Check:")
+        print(f"   MAIL_SERVER: {current_app.config.get('MAIL_SERVER')}")
+        print(f"   MAIL_PORT: {current_app.config.get('MAIL_PORT')}")
+        print(f"   MAIL_USERNAME: {current_app.config.get('MAIL_USERNAME')}")
+        print(f"   MAIL_PASSWORD: {'***' if current_app.config.get('MAIL_PASSWORD') else 'NOT SET'}")
+        print(f"   MAIL_USE_TLS: {current_app.config.get('MAIL_USE_TLS')}")
+        
         # Check if mail is properly configured
         if not current_app.config.get("MAIL_USERNAME") or current_app.config.get("MAIL_USERNAME") == "your-email@gmail.com":
             print(f"❌ EMAIL NOT CONFIGURED:")
@@ -41,7 +74,7 @@ def send_email_otp(email, otp):
         
         # Create and send email
         msg = Message(
-            subject="Your ClauseEase AI Verification Code",
+            subject="🔐 ClauseEase AI - Verification Code",
             recipients=[email],
             body=f"""
 Your verification code is: {otp}

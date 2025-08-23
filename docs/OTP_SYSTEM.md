@@ -1,8 +1,7 @@
 # 🔐 OTP Verification System for ClauseEase AI
 
 ## **📱 What We're Implementing:**
-- **Email OTP**: Traditional email verification with customizable expiry
-- **Phone OTP**: SMS verification with configurable service providers
+- **Email OTP**: Email verification with customizable expiry (Phone verification removed)
 
 ## **🚀 Features:**
 
@@ -13,12 +12,10 @@
 - ✅ Rate limiting protection
 - ✅ Secure code generation
 
-### **Phone OTP:**
-- ✅ 6-digit SMS verification codes
-- ✅ Multiple SMS service provider support
-- ✅ Development mode with console logging
-- ✅ Configurable expiry time
-- ✅ Phone number validation
+### **System Features:**
+- ✅ Email-only verification (simplified)
+- ✅ No phone verification complexity
+- ✅ Faster registration process
 
 ## **⚙️ Configuration:**
 

@@ -104,11 +104,6 @@
                             <span class="info-value">
                                 {% if current_user.phone %}
                                     {{ current_user.phone }}
-                                    {% if current_user.phone_verified %}
-                                        <span class="badge bg-success ms-2">✓ Verified</span>
-                                    {% else %}
-                                        <span class="badge bg-warning ms-2">⚠ Not Verified</span>
-                                    {% endif %}
                                 {% else %}
                                     <span class="text-muted">Not provided</span>
                                 {% endif %}

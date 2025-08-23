@@ -34,8 +34,7 @@ def reset_database():
             phone="+1234567890",
             gender="Other",
             date_of_birth="1990-01-01",
-            email_verified=True,
-            phone_verified=True
+            email_verified=True
         )
         demo_user.set_password("demo123")
         
@@ -48,7 +47,6 @@ def reset_database():
         print("📱 Phone: +1234567890")
         print("🔑 Password: demo123")
         print("✅ Email verified: Yes")
-        print("✅ Phone verified: Yes")
         print("\n🚀 You can now login with these credentials!")
 
 if __name__ == "__main__":
