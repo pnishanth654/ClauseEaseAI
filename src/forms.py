@@ -279,8 +279,8 @@ class RegisterForm(FlaskForm):
                     return False
                 # Don't modify self.phone.data here - keep the 10-digit input
                 # The combination will be done in app.py before saving to database
-            except Exception:
-                self.phone.errors.append("Invalid phone number")
+            except Exception as e:
+                self.phone.errors.append(f"Invalid phone number: {str(e)}")
                 return False
         return True
 

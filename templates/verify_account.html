@@ -12,11 +12,14 @@
                         <img src="{{ url_for('static', filename='icon.png') }}" alt="ClauseEase AI">
                     </div>
                 </div>
+                <div class="brand-header mb-3">
+                    <span class="brand-name">ClauseEase</span>
+                    <span class="brand-ai">AI</span>
+                </div>
                 <h1>Verify Your Account</h1>
                 <p>Enter the verification code sent to your email to activate your account</p>
             </div>
         </div>
-
 
         <div class="row justify-content-center">
             <div class="col-lg-10">
@@ -24,7 +27,6 @@
                     <!-- Email Verification -->
                     <div class="card border-0 shadow-sm">
                         <div class="card-body p-5">
-
                             
                             <div class="text-center mb-5">
                                 <p class="text-muted mb-0">
@@ -47,7 +49,11 @@
                                             <input type="text" class="otp-dash-input" maxlength="1" data-index="5" placeholder="">
                                         </div>
                                         <!-- Hidden field to store the complete OTP -->
-                                        <input type="hidden" name="email_otp" id="email-otp-complete">
+                                        <input type="hidden" name="email_otp" id="email-otp-complete" value="">
+                                        <!-- Debug info -->
+                                        <div class="text-center mt-3">
+                                            <small class="text-muted">Debug: OTP will appear here: <span id="debug-otp">(empty)</span></small>
+                                        </div>
                                         {% if email_form.email_otp.errors %}
                                             {% for error in email_form.email_otp.errors %}
                                                 <div class="invalid-feedback d-block text-center">{{ error }}</div>
@@ -55,7 +61,7 @@
                                         {% endif %}
                                     </div>
                                     <div class="d-grid">
-                                        <button type="submit" class="btn btn-primary btn-lg py-3">
+                                        <button type="submit" name="submit" value="verify" class="btn btn-primary btn-lg py-3" id="verify-btn">
                                             <i class="bi bi-check-circle me-2"></i>Verify OTP
                                         </button>
                                     </div>
@@ -78,7 +84,7 @@
                                 </p>
                                 <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
                                     <i class="bi bi-box-arrow-in-right"></i> Proceed to Login
-                                </a>
+                                </p>
                             {% else %}
                                 <div class="verification-icon mb-3">
                                     <i class="bi bi-exclamation-triangle text-warning fs-1"></i>
@@ -101,7 +107,9 @@
             <span class="text-muted me-2">Didn't receive the code?</span>
             <form method="POST" class="d-inline">
                 {{ resend_form.hidden_tag() }}
-                {{ resend_form.submit(class="btn btn-outline-secondary", value="Resend Code") }}
+                <button type="submit" name="submit" value="resend" class="btn btn-outline-secondary">
+                    Resend Code
+                </button>
             </form>
         </div>
 
@@ -110,4 +118,82 @@
         </div>
     </div>
 </div>
+
+<!-- JavaScript for OTP input handling -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dashInputs = document.querySelectorAll('.otp-dash-input');
+    const hiddenField = document.getElementById('email-otp-complete');
+    const debugSpan = document.getElementById('debug-otp');
+    const verifyBtn = document.getElementById('verify-btn');
+    
+    console.log('OTP form initialized');
+    console.log('Hidden field:', hiddenField);
+    console.log('Debug span:', debugSpan);
+    console.log('Verify button:', verifyBtn);
+    
+    dashInputs.forEach((input, index) => {
+        // Auto-focus next input when typing
+        input.addEventListener('input', function(e) {
+            if (e.target.value.length === 1) {
+                if (index < dashInputs.length - 1) {
+                    dashInputs[index + 1].focus();
+                }
+            }
+            updateHiddenField();
+        });
+        
+        // Handle backspace
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && e.target.value === '') {
+                if (index > 0) {
+                    dashInputs[index - 1].focus();
+                }
+            }
+        });
+        
+        // Handle paste
+        input.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text').slice(0, 6);
+            if (/^\d{6}$/.test(pastedData)) {
+                dashInputs.forEach((input, i) => {
+                    input.value = pastedData[i] || '';
+                });
+                updateHiddenField();
+                // Focus the last filled input or first empty one
+                const lastFilledIndex = Math.min(pastedData.length - 1, dashInputs.length - 1);
+                dashInputs[lastFilledIndex].focus();
+            }
+        });
+    });
+    
+    function updateHiddenField() {
+        const otpValue = Array.from(dashInputs).map(input => input.value).join('');
+        if (hiddenField) {
+            hiddenField.value = otpValue;
+            console.log('OTP updated:', otpValue);
+        }
+        if (debugSpan) {
+            debugSpan.textContent = otpValue || '(empty)';
+        }
+    }
+    
+    // Add form submission debugging
+    const form = document.getElementById('email-otp-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const otpValue = hiddenField ? hiddenField.value : '';
+            console.log('Form submitting with OTP:', otpValue);
+            console.log('Form data:', new FormData(form));
+            
+            if (!otpValue || otpValue.length !== 6) {
+                e.preventDefault();
+                alert('Please enter a complete 6-digit OTP code');
+                return false;
+            }
+        });
+    }
+});
+</script>
 {% endblock %} 

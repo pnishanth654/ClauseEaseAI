@@ -20,9 +20,9 @@
     
     <!-- Firebase removed - using simple OTP instead -->
     <script>
-        // Pass current user ID to JavaScript
+        // Pass current user email to JavaScript
         {% if current_user.is_authenticated %}
-        window.currentUserId = {{ current_user.id }};
+        window.currentUserEmail = "{{ current_user.email }}";
         {% endif %}
     </script>
     
@@ -80,6 +80,31 @@
         .auth-header p {
             color: #666;
             margin-bottom: 0;
+        }
+        
+        /* Brand Header Styling */
+        .brand-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            margin-bottom: 1rem;
+        }
+        
+        .brand-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+            line-height: 1;
+        }
+        
+        .brand-ai {
+            font-size: 20px;
+            font-weight: 600;
+            color: #6b7280;
+            margin: 0;
+            line-height: 1;
         }
         
         .form-control {
@@ -788,7 +813,7 @@
     <!-- Navigation for authenticated users -->
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">
+            <a class="navbar-brand fw-bold" href="{{ url_for('home') }}">
                 <i class="bi bi-shield-check text-primary"></i> ClauseEase AI
             </a>
             <div class="navbar-nav ms-auto">

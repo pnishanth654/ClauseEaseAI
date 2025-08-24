@@ -1,0 +1,1416 @@
+{% extends "base.html" %}
+
+{% block title %}Home - ClauseEase AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .home-container {
+        display: flex;
+        height: calc(100vh - 80px);
+        background: #ffffff;
+    }
+    
+    .sidebar {
+        width: 260px;
+        background: #f7f7f8;
+        border-right: 1px solid #e5e5e5;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+    
+    .sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid #e5e5e5;
+    }
+    
+    .logo-title-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+    
+    .header-logo {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        object-fit: contain;
+    }
+    
+    .header-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+    
+    .brand-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+    }
+    
+    .brand-ai {
+        font-size: 16px;
+        font-weight: 600;
+        color: #6b7280;
+        margin: 0;
+    }
+    
+    .sidebar-section {
+        padding: 20px;
+        border-bottom: 1px solid #e5e5e5;
+    }
+    
+    .sidebar-section h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .sidebar-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        border-radius: 8px;
+        color: #374151;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        font-size: 14px;
+    }
+    
+    .sidebar-item:hover {
+        background: #e5e7eb;
+        color: #111827;
+        text-decoration: none;
+    }
+    
+    .sidebar-item i {
+        margin-right: 12px;
+        font-size: 16px;
+        width: 20px;
+        text-align: center;
+    }
+    
+    /* New Chat Section Styling - ChatGPT-like appearance */
+    .new-chat-section {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e5e5e5;
+    }
+    
+    .new-chat-item {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-weight: 500;
+        color: #374151;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        margin: 0;
+    }
+    
+    .new-chat-item:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        color: #111827;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .new-chat-item i {
+        margin-right: 8px;
+        font-size: 18px;
+        color: #0ea5e9;
+    }
+    
+    .search-chat-item {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-weight: 500;
+        color: #6b7280;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        margin-top: 8px;
+        font-size: 13px;
+    }
+    
+    .search-chat-item:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #374151;
+        transform: translateY(-1px);
+    }
+    
+    .search-chat-item i {
+        margin-right: 8px;
+        font-size: 16px;
+        color: #9ca3af;
+    }
+    
+    .current-document-info {
+        margin-bottom: 10px;
+    }
+    
+    .document-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        background: #f0f9ff;
+        border: 1px solid #0ea5e9;
+        border-radius: 8px;
+        color: #0c4a6e;
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    .document-item i {
+        margin-right: 12px;
+        color: #0ea5e9;
+        font-size: 18px;
+    }
+    
+    .document-item span {
+        word-break: break-word;
+        line-height: 1.4;
+    }
+    
+    .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #ffffff;
+    }
+    
+    .upload-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        text-align: center;
+    }
+    
+    .upload-title {
+        font-size: 48px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #111827;
+    }
+    
+    .upload-title .highlight {
+        color: #8b5cf6;
+    }
+    
+    .upload-subtitle {
+        font-size: 18px;
+        color: #6b7280;
+        margin-bottom: 40px;
+        max-width: 600px;
+        line-height: 1.6;
+    }
+    
+    .upload-subtitle .highlight {
+        color: #f59e0b;
+        text-decoration: underline;
+    }
+    
+    .upload-zone {
+        width: 100%;
+        max-width: 600px;
+        border: 2px dashed #8b5cf6;
+        border-radius: 16px;
+        padding: 60px 40px;
+        background: #fafafa;
+        transition: all 0.3s ease;
+        position: relative;
+        cursor: pointer;
+    }
+    
+    .upload-zone:hover {
+        border-color: #7c3aed;
+        background: #f5f3ff;
+    }
+    
+    .upload-zone.dragover {
+        border-color: #7c3aed;
+        background: #f5f3ff;
+        transform: scale(1.02);
+    }
+    
+    .upload-icon {
+        font-size: 64px;
+        color: #8b5cf6;
+        margin-bottom: 20px;
+    }
+    
+    .upload-text {
+        font-size: 18px;
+        color: #374151;
+        margin-bottom: 20px;
+    }
+    
+    .upload-button {
+        background: #8b5cf6;
+        color: white;
+        border: none;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .upload-button:hover {
+        background: #7c3aed;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+    }
+    
+    .upload-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .upload-dropdown-content {
+        display: none;
+        position: absolute;
+        background: white;
+        min-width: 160px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+        z-index: 1;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-top: 8px;
+    }
+    
+    .upload-dropdown-content a {
+        color: #374151;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        border-radius: 8px;
+        margin: 4px;
+        transition: background 0.2s ease;
+    }
+    
+    .upload-dropdown-content a:hover {
+        background: #f3f4f6;
+    }
+    
+    .upload-dropdown:hover .upload-dropdown-content {
+        display: block;
+    }
+    
+    .drag-instruction {
+        position: absolute;
+        top: -40px;
+        right: 20px;
+        background: #8b5cf6;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        transform: rotate(5deg);
+    }
+    
+    .benefits-section {
+        margin-top: 30px;
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .benefit-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        color: #475569;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .benefit-item:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+    }
+    
+    .benefit-item i {
+        color: #8b5cf6;
+        font-size: 16px;
+    }
+    
+    .supported-formats {
+        margin-top: 16px;
+        font-size: 14px;
+        color: #6b7280;
+        text-align: center;
+        font-weight: 500;
+    }
+    
+    .chat-interface {
+        display: none;
+        flex-direction: column;
+        height: 100%;
+    }
+    
+    .chat-header {
+        padding: 20px;
+        border-bottom: 1px solid #e5e5e5;
+        background: #f9fafb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .chat-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+    
+    .chat-actions .btn {
+        padding: 8px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    
+    .chat-actions .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Chat Rename Functionality */
+    .chat-title-editable {
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+    }
+    
+    .chat-title-editable:hover {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+    }
+    
+    .chat-title-editable.editing {
+        background: #ffffff;
+        border-color: #0ea5e9;
+        outline: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+        min-width: 200px;
+    }
+    
+    .chat-title-editable.editing:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+    
+    .chat-title-editable.editing::after {
+        content: 'Press Enter to save, Esc to cancel';
+        position: absolute;
+        top: 100%;
+        left: 0;
+        font-size: 11px;
+        color: #6b7280;
+        font-weight: normal;
+        margin-top: 4px;
+        white-space: nowrap;
+    }
+    
+    .file-details {
+        position: relative;
+    }
+    
+    .rename-btn {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+    
+    .rename-btn:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        color: #374151;
+    }
+    
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+    }
+    
+    .message {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .message.user {
+        flex-direction: row-reverse;
+    }
+    
+    .message-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+    }
+    
+    .message.user .message-avatar {
+        background: #8b5cf6;
+    }
+    
+    .message.assistant .message-avatar {
+        background: #10b981;
+    }
+    
+    .message-content {
+        max-width: 70%;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    
+    .message.user .message-content {
+        background: #8b5cf6;
+        color: white;
+    }
+    
+    .message.assistant .message-content {
+        background: #f3f4f6;
+        color: #374151;
+    }
+    
+    .chat-input-container {
+        padding: 20px;
+        border-top: 1px solid #e5e5e5;
+        background: #f9fafb;
+    }
+    
+    .chat-input-wrapper {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+    }
+    
+    .chat-input {
+        flex: 1;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 14px;
+        resize: none;
+        min-height: 44px;
+        max-height: 120px;
+        outline: none;
+        transition: border-color 0.2s ease;
+    }
+    
+    .chat-input:focus {
+        border-color: #8b5cf6;
+    }
+    
+    .chat-send-btn {
+        background: #8b5cf6;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .chat-send-btn:hover {
+        background: #7c3aed;
+    }
+    
+    .chat-send-btn:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+    }
+    
+    .file-info {
+        background: #f0f9ff;
+        border: 1px solid #0ea5e9;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .file-info i {
+        font-size: 24px;
+        color: #0ea5e9;
+    }
+    
+    .file-details h4 {
+        margin: 0 0 4px 0;
+        color: #0c4a6e;
+        font-size: 16px;
+    }
+    
+    .file-details p {
+        margin: 0;
+        color: #0369a1;
+        font-size: 14px;
+    }
+    
+    .hidden {
+        display: none !important;
+    }
+    
+    @media (max-width: 768px) {
+        .sidebar {
+            width: 200px;
+        }
+        
+        .upload-title {
+            font-size: 36px;
+        }
+        
+        .upload-zone {
+            padding: 40px 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-title-container">
+                <img src="{{ url_for('static', filename='icon.png') }}" alt="ClauseEase AI" class="header-logo">
+                <div class="header-text">
+                    <span class="brand-name">ClauseEase</span>
+                    <span class="brand-ai">AI</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- New Chat Section - Prominent placement like ChatGPT -->
+        <div class="sidebar-section new-chat-section">
+            <a href="#" class="sidebar-item new-chat-item" onclick="startNewChat()" id="new-chat-btn">
+                <i class="bi bi-plus-circle"></i>
+                New chat
+            </a>
+            <a href="#" class="sidebar-item search-chat-item" onclick="searchChats()" id="search-chat-btn">
+                <i class="bi bi-search"></i>
+                Search chats
+            </a>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3>Current Document</h3>
+            <div id="current-document-info" class="current-document-info">
+                <div class="document-item">
+                    <i class="bi bi-file-earmark-text" style="font-size: 18px; color: #0ea5e9;"></i>
+                    <span>No document uploaded</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3>Actions</h3>
+            <div id="chats-list">
+                <a href="#" class="sidebar-item" onclick="startNewChat()">
+                    <i class="bi bi-upload"></i>
+                    Upload New Document
+                </a>
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3>Folders</h3>
+            <a href="#" class="sidebar-item">
+                <i class="bi bi-folder-plus"></i>
+                + New folder
+            </a>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3>Tools</h3>
+            <a href="#" class="sidebar-item">
+                <i class="bi bi-mortarboard"></i>
+                AI Scholar
+            </a>
+            <a href="#" class="sidebar-item">
+                <i class="bi bi-search"></i>
+                AI Detector
+            </a>
+            <a href="#" class="sidebar-item">
+                <i class="bi bi-pencil-square"></i>
+                AI Writer
+            </a>
+            <a href="#" class="sidebar-item">
+                <i class="bi bi-download"></i>
+                Windows app
+            </a>
+            <a href="#" class="sidebar-item">
+                <i class="bi bi-phone"></i>
+                Mobile app
+            </a>
+        </div>
+        
+        <div class="sidebar-section mt-auto">
+            <div class="text-center mb-3">
+                <small class="text-muted">Sign up for free to save your chat history</small>
+            </div>
+            <div class="text-center">
+                <div class="mb-2">
+                    <div style="display: inline-block; width: 60px; height: 40px; background: #e5e7eb; border-radius: 8px; position: relative;">
+                        <div style="position: absolute; top: 5px; left: 5px; width: 50px; height: 30px; background: #d1d5db; border-radius: 4px;"></div>
+                        <div style="position: absolute; top: 10px; left: 10px; width: 40px; height: 20px; background: #9ca3af; border-radius: 2px;"></div>
+                    </div>
+                </div>
+                <button class="btn btn-primary w-100">
+                    <i class="bi bi-person"></i> Sign up
+                </button>
+            </div>
+        </div>
+        
+        <!-- Upload Migration Section (Admin Only) -->
+        <div class="sidebar-section" id="migration-section" style="display: none;">
+            <h3>Upload Migration</h3>
+            <div class="migration-info mb-3">
+                <small class="text-muted">Move uploads from src/ to root directory</small>
+            </div>
+            <button class="btn btn-warning btn-sm w-100 mb-2" onclick="checkUploadConfig()">
+                <i class="bi bi-info-circle"></i> Check Config
+            </button>
+            <button class="btn btn-primary btn-sm w-100 mb-2" onclick="migrateUploads()">
+                <i class="bi bi-arrow-right-circle"></i> Migrate Files
+            </button>
+            <button class="btn btn-danger btn-sm w-100" onclick="cleanupOldUploads()">
+                <i class="bi bi-trash"></i> Cleanup Old
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Upload Section -->
+        <div id="upload-section" class="upload-section">
+            <div class="upload-title">
+                Simplify <span class="highlight">Legal Documents</span>
+            </div>
+            <div class="upload-subtitle">
+                Transform complex contracts, terms & conditions, and policy documents into <span class="highlight">simple, easy-to-understand language</span> with AI
+            </div>
+            
+            <div class="upload-zone" id="upload-zone">
+
+                <div class="upload-icon">
+                    <i class="bi bi-cloud-upload" style="font-size: 64px; color: #8b5cf6;"></i>
+                </div>
+                <div class="upload-text">Upload contracts, terms, or policy documents to simplify</div>
+                <button class="upload-button" onclick="document.getElementById('file-input').click()">
+                    <i class="bi bi-upload"></i>
+                    Simplify Document
+                </button>
+                
+                <div class="supported-formats">
+                    Supported formats: .pdf, .docx, .txt, .rtf, .md, .odt, .ppt, .pptx
+                </div>
+            </div>
+            
+            <input type="file" id="file-input" accept=".pdf,.docx,.txt,.rtf,.md,.odt,.ppt,.pptx" style="display: none;" onchange="handleFileUpload(event)">
+        </div>
+        
+        <!-- Chat Interface -->
+        <div id="chat-interface" class="chat-interface">
+                            <div class="chat-header">
+                    <div class="file-info">
+                        <i class="bi bi-file-earmark-text" style="font-size: 24px; color: #0ea5e9;"></i>
+                        <div class="file-details">
+                            <h4 id="current-filename" class="chat-title-editable" onclick="startRename()" title="Click to rename">Document Name</h4>
+                            <p id="current-filesize">File size</p>
+                        </div>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="btn rename-btn" onclick="startRename()" title="Click to rename this chat/document">
+                            <i class="bi bi-pencil-square"></i>
+                            Rename
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="startNewChat()">
+                            <i class="bi bi-arrow-left"></i>
+                            Back
+                        </button>
+                    </div>
+                </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <div class="message assistant">
+                    <div class="message-avatar">AI</div>
+                    <div class="message-content">
+                        Hello! I've analyzed your legal document and simplified the complex language. You can now ask me questions about any section, and I'll explain it in simple terms that are easy to understand.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <textarea 
+                        class="chat-input" 
+                        id="chat-input" 
+                        placeholder="Ask me to explain any legal terms or clauses in simple language..."
+                        rows="1"
+                        onkeydown="handleKeyDown(event)"
+                    ></textarea>
+                    <button class="chat-send-btn" id="chat-send-btn" onclick="sendMessage()">
+                        <i class="bi bi-send"></i>
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentFile = null;
+let currentChatId = null;
+
+// File upload handling
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Validate file type
+    const allowedTypes = [
+        'application/pdf', 
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+        'text/plain',
+        'text/rtf',
+        'text/markdown',
+        'application/vnd.oasis.opendocument.text',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    ];
+    const allowedExtensions = ['.pdf', '.docx', '.txt', '.rtf', '.md', '.odt', '.ppt', '.pptx'];
+    
+    // Check both MIME type and file extension
+    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+        alert('Please select a valid file type. Accepted formats: PDF, DOCX, TXT, RTF, MD, ODT, PPT, PPTX');
+        return;
+    }
+    
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+        alert('File size must be less than 10MB');
+        return;
+    }
+    
+    currentFile = file;
+    
+    // Show file info
+    document.getElementById('current-filename').textContent = file.name;
+    document.getElementById('current-filesize').textContent = formatFileSize(file.size);
+    
+    // Update sidebar with current document info
+    updateSidebarDocumentInfo(file.name, formatFileSize(file.size));
+    
+    // Upload file to server
+    uploadFile(file);
+}
+
+// Drag and drop functionality
+function setupDragAndDrop() {
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('file-input');
+    
+    uploadZone.addEventListener('click', () => fileInput.click());
+    
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+    
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileUpload({ target: { files: files } });
+        }
+    });
+}
+
+// File upload to server
+async function uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    console.log('🚀 Starting file upload...');
+    console.log('📄 File:', file.name, 'Size:', file.size, 'Type:', file.type);
+    
+    try {
+        // Check if CSRF token exists
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (!csrfToken) {
+            console.warn('⚠️ CSRF token not found, proceeding without it');
+        }
+        
+        const headers = {};
+        if (csrfToken) {
+            headers['X-CSRFToken'] = csrfToken.content;
+        }
+        
+        console.log('📤 Sending upload request...');
+        const response = await fetch('/upload-document', {
+            method: 'POST',
+            body: formData,
+            headers: headers
+        });
+        
+        console.log('📥 Response received:', response.status, response.statusText);
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('✅ Upload successful:', result);
+            
+            currentChatId = result.chat_id;
+            
+            console.log('🔄 Switching to chat interface...');
+            console.log('📁 Upload section element:', document.getElementById('upload-section'));
+            console.log('💬 Chat interface element:', document.getElementById('chat-interface'));
+            
+            // Switch to chat interface
+            const uploadSection = document.getElementById('upload-section');
+            const chatInterface = document.getElementById('chat-interface');
+            
+            if (uploadSection && chatInterface) {
+                uploadSection.style.display = 'none';
+                chatInterface.style.display = 'flex';
+                
+                console.log('✅ Display updated - Upload section hidden, Chat interface shown');
+                
+                // Add success message
+                addMessage('assistant', `Perfect! I've uploaded and analyzed "${file.name}". I've simplified the complex legal language and you can now ask me to explain any terms, clauses, or sections in simple, easy-to-understand language.`);
+            } else {
+                console.error('❌ Elements not found:', { uploadSection, chatInterface });
+                alert('Error: Could not switch to chat interface. Please refresh the page.');
+            }
+        } else {
+            const error = await response.json();
+            console.error('❌ Upload failed:', error);
+            alert('Upload failed: ' + error.error);
+        }
+    } catch (error) {
+        console.error('❌ Upload error:', error);
+        alert('Upload failed. Please try again. Error: ' + error.message);
+    }
+}
+
+// Chat functionality
+function addMessage(role, content) {
+    const messagesContainer = document.getElementById('chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${role}`;
+    
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
+    avatar.textContent = role === 'user' ? 'U' : 'AI';
+    
+    const messageContent = document.createElement('div');
+    messageContent.className = 'message-content';
+    messageContent.textContent = content;
+    
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(messageContent);
+    messagesContainer.appendChild(messageDiv);
+    
+    // Scroll to bottom
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Add user message to chat
+    addMessage('user', message);
+    input.value = '';
+    
+    // Disable send button and show loading
+    const sendBtn = document.getElementById('chat-send-btn');
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Thinking...';
+    
+    try {
+        // Send message to server
+        const response = await fetch('/chat-message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({
+                chat_id: currentChatId,
+                message: message
+            })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            addMessage('assistant', result.response);
+        } else {
+            addMessage('assistant', 'Sorry, I encountered an error. Please try again.');
+        }
+    } catch (error) {
+        console.error('Chat error:', error);
+        addMessage('assistant', 'Sorry, I encountered an error. Please try again.');
+    } finally {
+        // Re-enable send button
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="bi bi-send"></i> Send';
+    }
+}
+
+function handleKeyDown(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+}
+
+function startNewChat() {
+    console.log('🔄 Starting new chat...');
+    
+    // Reset to upload interface
+    const chatInterface = document.getElementById('chat-interface');
+    const uploadSection = document.getElementById('upload-section');
+    
+    if (chatInterface && uploadSection) {
+        chatInterface.style.display = 'none';
+        uploadSection.style.display = 'flex';
+        
+        console.log('✅ Interface switched back to upload');
+    } else {
+        console.error('❌ Interface elements not found');
+    }
+    
+    // Reset chat messages
+    const chatMessages = document.getElementById('chat-messages');
+    if (chatMessages) {
+        chatMessages.innerHTML = '';
+        console.log('✅ Chat messages cleared');
+    }
+    
+    // Reset variables
+    currentFile = null;
+    currentChatId = null;
+    console.log('✅ Variables reset');
+    
+    // Reset sidebar document info
+    updateSidebarDocumentInfo('No document uploaded', '');
+    
+            // The new chat button is always visible at the top now
+        console.log('✅ New chat button remains visible at top');
+    
+    console.log('🔄 New chat ready');
+}
+
+function searchChats() {
+    console.log('🔍 Search chats clicked');
+    
+    // For now, show a simple alert - you can expand this later
+    const searchTerm = prompt('Enter search term for chats:');
+    if (searchTerm) {
+        console.log(`🔍 Searching for: ${searchTerm}`);
+        // TODO: Implement actual chat search functionality
+        alert(`Search functionality for "${searchTerm}" will be implemented soon!`);
+    }
+}
+
+function updateSidebarDocumentInfo(filename, filesize) {
+    const currentDocInfo = document.getElementById('current-document-info');
+    if (filename && filename !== 'No document uploaded') {
+        currentDocInfo.innerHTML = `
+            <div class="document-item">
+                <i class="bi bi-file-earmark-text" style="font-size: 18px; color: #0ea5e9;"></i>
+                <div>
+                    <div style="font-weight: 600; margin-bottom: 4px;">${filename}</div>
+                    <div style="font-size: 12px; color: #0369a1;">${filesize}</div>
+                </div>
+            </div>
+        `;
+        // New chat button is always visible at the top
+    } else {
+        currentDocInfo.innerHTML = `
+            <div class="document-item">
+                <i class="bi bi-file-earmark-text" style="font-size: 18px; color: #0ea5e9;"></i>
+                <span>No document uploaded</span>
+            </div>
+        `;
+        // New chat button is always visible at the top
+    }
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Chat Rename Functionality
+let isRenaming = false;
+let originalTitle = '';
+
+function startRename() {
+    if (isRenaming) return; // Prevent multiple rename sessions
+    
+    const titleElement = document.getElementById('current-filename');
+    if (!titleElement) return;
+    
+    console.log('✏️ Starting rename process...');
+    
+    // Store original title
+    originalTitle = titleElement.textContent;
+    isRenaming = true;
+    
+    // Make the title editable
+    titleElement.contentEditable = true;
+    titleElement.classList.add('editing');
+    titleElement.focus();
+    
+    // Select all text for easy editing
+    const range = document.createRange();
+    range.selectNodeContents(titleElement);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    
+    // Add event listeners for save/cancel
+    titleElement.addEventListener('blur', finishRename);
+    titleElement.addEventListener('keydown', handleRenameKeydown);
+    
+    console.log('✅ Rename mode activated');
+}
+
+function handleRenameKeydown(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        finishRename();
+    } else if (event.key === 'Escape') {
+        event.preventDefault();
+        cancelRename();
+    }
+}
+
+function finishRename() {
+    const titleElement = document.getElementById('current-filename');
+    if (!titleElement || !isRenaming) return;
+    
+    const newTitle = titleElement.textContent.trim();
+    console.log(`✏️ Renaming from "${originalTitle}" to "${newTitle}"`);
+    
+    // Validate new title
+    if (!newTitle || newTitle === originalTitle) {
+        console.log('ℹ️ No changes or empty title, reverting...');
+        cancelRename();
+        return;
+    }
+    
+    // Update the title
+    titleElement.textContent = newTitle;
+    
+    // Update sidebar if it exists
+    updateSidebarDocumentInfo(newTitle, document.getElementById('current-filesize').textContent);
+    
+    // Save to database if chat ID exists
+    if (currentChatId) {
+        saveChatTitle(newTitle);
+    }
+    
+    // Clean up
+    cleanupRename();
+    console.log('✅ Rename completed successfully');
+}
+
+function cancelRename() {
+    const titleElement = document.getElementById('current-filename');
+    if (!titleElement) return;
+    
+    console.log('❌ Rename cancelled, reverting to original title');
+    
+    // Restore original title
+    titleElement.textContent = originalTitle;
+    
+    // Clean up
+    cleanupRename();
+}
+
+function cleanupRename() {
+    const titleElement = document.getElementById('current-filename');
+    if (!titleElement) return;
+    
+    // Remove editing state
+    titleElement.contentEditable = false;
+    titleElement.classList.remove('editing');
+    
+    // Remove event listeners
+    titleElement.removeEventListener('blur', finishRename);
+    titleElement.removeEventListener('keydown', handleRenameKeydown);
+    
+    // Reset state
+    isRenaming = false;
+    originalTitle = '';
+    
+    console.log('🧹 Rename cleanup completed');
+}
+
+function saveChatTitle(newTitle) {
+    // TODO: Implement API call to save chat title to database
+    console.log(`💾 Saving chat title "${newTitle}" to database (chat ID: ${currentChatId})`);
+    
+    // For now, just log the change
+    // You can implement this later with a proper API endpoint
+    fetch('/update-chat-title', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            chat_id: currentChatId,
+            title: newTitle
+        })
+    }).then(response => {
+        if (response.ok) {
+            console.log('✅ Chat title saved to database');
+        } else {
+            console.log('❌ Failed to save chat title to database');
+        }
+    }).catch(error => {
+        console.error('❌ Error saving chat title:', error);
+    });
+}
+
+// Upload Migration Functions
+function checkUploadConfig() {
+    console.log('🔍 Checking upload configuration...');
+    
+    fetch('/upload-config')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('📁 Upload Configuration:', data);
+                alert(`Upload Configuration:\n\n` +
+                      `Project Root: ${data.project_root}\n` +
+                      `Upload Folder: ${data.upload_folder}\n` +
+                      `Folder Exists: ${data.upload_folder_exists}\n` +
+                      `Current Working Dir: ${data.current_working_directory}`);
+            } else {
+                console.error('❌ Failed to get upload config:', data.error);
+                alert('Failed to get upload configuration');
+            }
+        })
+        .catch(error => {
+            console.error('❌ Error checking upload config:', error);
+            alert('Error checking upload configuration');
+        });
+}
+
+function migrateUploads() {
+    console.log('🔄 Starting upload migration...');
+    
+    if (!confirm('This will move all files from src/uploads to the root uploads directory. Continue?')) {
+        return;
+    }
+    
+    fetch('/migrate-uploads', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('✅ Migration successful:', data);
+            alert(`Migration completed successfully!\n\n` +
+                  `Files migrated: ${data.total_migrated}\n` +
+                  `Failed: ${data.total_failed}\n` +
+                  `New location: ${data.new_directory}`);
+            
+            // Show cleanup button if migration was successful
+            if (data.total_migrated > 0 && data.total_failed === 0) {
+                document.getElementById('migration-section').style.display = 'block';
+            }
+        } else {
+            console.error('❌ Migration failed:', data.message);
+            alert('Migration failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error during migration:', error);
+        alert('Error during migration: ' + error.message);
+    });
+}
+
+function cleanupOldUploads() {
+    console.log('🗑️ Cleaning up old upload directory...');
+    
+    if (!confirm('This will remove the old src/uploads directory. Make sure migration was successful first. Continue?')) {
+        return;
+    }
+    
+    fetch('/cleanup-old-uploads', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('✅ Cleanup successful:', data);
+            alert('Old upload directory removed successfully!');
+            
+            // Hide migration section after cleanup
+            document.getElementById('migration-section').style.display = 'none';
+        } else {
+            console.error('❌ Cleanup failed:', data.message);
+            alert('Cleanup failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error during cleanup:', error);
+        alert('Error during cleanup: ' + error.message);
+    });
+}
+
+// Initialize drag and drop
+document.addEventListener('DOMContentLoaded', setupDragAndDrop);
+
+// Auto-resize textarea
+document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('chat-input');
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+});
+
+// Initialize interface state
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Page loaded, initializing interface...');
+    
+    // Ensure upload section is visible and chat interface is hidden
+    const uploadSection = document.getElementById('upload-section');
+    const chatInterface = document.getElementById('chat-interface');
+    
+    if (uploadSection && chatInterface) {
+        uploadSection.style.display = 'flex';
+        chatInterface.style.display = 'none';
+        console.log('✅ Interface initialized: Upload visible, Chat hidden');
+    } else {
+        console.error('❌ Interface elements not found during initialization');
+    }
+    
+    // Reset any existing state
+    currentFile = null;
+    currentChatId = null;
+    console.log('✅ State reset');
+    
+    // Show migration section for admin access
+    const migrationSection = document.getElementById('migration-section');
+    if (migrationSection) {
+        migrationSection.style.display = 'block';
+        console.log('✅ Migration section visible');
+    }
+});
+
+// Debug function to check interface state
+function debugInterfaceState() {
+    console.log('🔍 DEBUG: Interface State Check');
+    console.log('📁 Upload section:', document.getElementById('upload-section'));
+    console.log('💬 Chat interface:', document.getElementById('chat-interface'));
+    console.log('📄 Current file:', currentFile);
+    console.log('💬 Current chat ID:', currentChatId);
+    
+    const uploadSection = document.getElementById('upload-section');
+    const chatInterface = document.getElementById('chat-interface');
+    
+    if (uploadSection) {
+        console.log('📁 Upload section display:', uploadSection.style.display);
+        console.log('📁 Upload section visible:', uploadSection.offsetParent !== null);
+    }
+    
+    if (chatInterface) {
+        console.log('💬 Chat interface display:', chatInterface.style.display);
+        console.log('💬 Chat interface visible:', chatInterface.offsetParent !== null);
+    }
+}
+</script>
+{% endblock %} 

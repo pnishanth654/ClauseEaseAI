@@ -10,13 +10,13 @@ def _serializer():
     return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt=RESET_SALT)
 
 
-def generate_reset_token(user_id: int) -> str:
-    return _serializer().dumps({"uid": user_id})
+def generate_reset_token(user_email: str) -> str:
+    return _serializer().dumps({"email": user_email})
 
 
 def verify_reset_token(token: str, max_age_seconds: int = 3600):
     data = _serializer().loads(token, max_age=max_age_seconds)
-    return data.get("uid")
+    return data.get("email")
 
 
 def send_password_reset(email: str, token: str):
